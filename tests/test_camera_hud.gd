@@ -47,5 +47,24 @@ func run(tree: SceneTree) -> Array:
 	var label := hud.get_node("%SpeedLabel") as Label
 	if label == null or label.text != "108 km/h":
 		failed.append("label %s" % (label.text if label != null else "missing"))
+	if hud_script.format_distance(60.41) != "60 m":
+		failed.append("format distance")
+	if hud_script.format_score(750) != "750 pts":
+		failed.append("format score")
+	if hud_script.format_multiplier(3) != "×3":
+		failed.append("format multiplier")
+	var distance_label := hud.get_node("%DistanceLabel") as Label
+	var score_label := hud.get_node("%ScoreLabel") as Label
+	var multiplier_label := hud.get_node("%MultiplierLabel") as Label
+	if distance_label == null or distance_label.text != "0 m":
+		failed.append("distance label")
+	if score_label == null or score_label.text != "0 pts":
+		failed.append("score label")
+	if multiplier_label == null or multiplier_label.text != "×1":
+		failed.append("multiplier label")
+	hud.show_distance(60.41)
+	hud.show_score(750, 3)
+	if distance_label.text != "60 m" or score_label.text != "750 pts" or multiplier_label.text != "×3":
+		failed.append("shown %s %s %s" % [distance_label.text, score_label.text, multiplier_label.text])
 	hud.queue_free()
 	return failed

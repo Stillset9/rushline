@@ -16,7 +16,7 @@ script = ExtResource("1_hud")
 offset_left = 24.0
 offset_top = 24.0
 offset_right = 280.0
-offset_bottom = 108.0
+offset_bottom = 220.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="SpeedLabel" type="Label" parent="Panel"]
@@ -29,3 +29,36 @@ offset_bottom = 68.0
 theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
 theme_override_font_sizes/font_size = 40
 text = "000 km/h"
+
+[node name="DistanceLabel" type="Label" parent="Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 16.0
+offset_top = 80.0
+offset_right = 240.0
+offset_bottom = 108.0
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 22
+text = "0 m"
+
+[node name="ScoreLabel" type="Label" parent="Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 16.0
+offset_top = 112.0
+offset_right = 240.0
+offset_bottom = 140.0
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 22
+text = "0 pts"
+
+[node name="MultiplierLabel" type="Label" parent="Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 16.0
+offset_top = 144.0
+offset_right = 240.0
+offset_bottom = 172.0
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 22
+text = "×1"
