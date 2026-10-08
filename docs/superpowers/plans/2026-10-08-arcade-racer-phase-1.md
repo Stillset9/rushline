@@ -61,7 +61,7 @@
 
 ## Prerrequisito
 
-`godot --version` debe imprimir una versión 4.3 o superior. Si el comando no existe, instalar Godot 4.3+ y dejar el binario disponible como `godot` antes de la tarea 1. No sustituir el binario por un Godot 3.
+`godot --version` debe imprimir una versión 4.5 o superior. Si el comando no existe, instalar Godot 4.5+ y dejar el binario disponible como `godot` antes de la tarea 1. No sustituir el binario por un Godot 3.
 
 Comando de pruebas, siempre desde el directorio del proyecto:
 
