@@ -118,6 +118,36 @@ text = "Enter, Start o A para otra vez"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="PauseLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 64
+text = "Pausa\nEsc o Enter sigue"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HintLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -90.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 24
+text = ""
+horizontal_alignment = 1
+
 [node name="StandingLabel" type="Label" parent="."]
 unique_name_in_owner = true
 visible = false

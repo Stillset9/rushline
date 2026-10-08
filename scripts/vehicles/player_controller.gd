@@ -30,6 +30,7 @@ var nitro_input: bool = false
 var read_input_devices: bool = true
 var steer_input: float = 0.0
 var brake_input: bool = false
+var impact_s: float = 0.0
 
 
 static func step_longitudinal(speed: float, max_speed: float, braking: bool, delta: float, accel: float = ACCEL_MPS2) -> float:
@@ -79,6 +80,18 @@ func tick(delta: float) -> void:
 	position.z += speed_mps * delta
 	VehicleVisual.spin_wheels(self, speed_mps, delta)
 	VehicleVisual.show_boost(self, boosting)
+	if impact_s > 0.0:
+		impact_s = maxf(0.0, impact_s - delta)
+		var impact := get_node_or_null("Impact")
+		if impact != null:
+			impact.visible = impact_s > 0.0
+
+
+func show_impact() -> void:
+	impact_s = 0.22
+	var impact := get_node_or_null("Impact")
+	if impact != null:
+		impact.visible = true
 
 
 func _is_braking() -> bool:

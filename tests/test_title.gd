@@ -16,6 +16,12 @@ func run(tree: SceneTree) -> Array:
 		failed.append("quit")
 	if title.get_node("%GarageLabel").text != "Garaje":
 		failed.append("garage")
+	if title.get_node("%RecordsLabel").text != "Récords":
+		failed.append("records")
+	if title.get_node("%OptionsLabel").text != "Opciones":
+		failed.append("options")
+	if title.get_node("%CreditsLabel").text != "Créditos":
+		failed.append("credits")
 	if title.RACE_SCENE != "res://scenes/race/race.tscn":
 		failed.append("destination")
 	title.request_play()

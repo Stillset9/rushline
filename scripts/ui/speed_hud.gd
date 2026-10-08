@@ -10,6 +10,8 @@ extends CanvasLayer
 @onready var _nitro_label: Label = %NitroLabel
 @onready var _course_label: Label = %CourseLabel
 @onready var _standing_label: Label = %StandingLabel
+@onready var _pause_label: Label = %PauseLabel
+@onready var _hint_label: Label = %HintLabel
 
 
 func _ready() -> void:
@@ -65,6 +67,15 @@ func show_nitro(tank: float) -> void:
 
 func show_course(label: String) -> void:
 	_course_label.text = label
+
+
+func show_pause(active: bool) -> void:
+	_pause_label.visible = active
+
+
+func show_hint(text: String) -> void:
+	_hint_label.visible = text != ""
+	_hint_label.text = text
 
 
 func show_standing(best: int, money: int, record: bool) -> void:

@@ -38,6 +38,7 @@ static func build(parent: Node3D, model: PackedScene = null, with_boost: bool = 
 	if with_boost:
 		_exhaust(parent, "ExhaustL", Vector3(-0.42, 0.42, -2.15))
 		_exhaust(parent, "ExhaustR", Vector3(0.42, 0.42, -2.15))
+		_impact(parent)
 	return body
 
 
@@ -116,5 +117,25 @@ static func _exhaust(parent: Node3D, node_name: String, at: Vector3) -> void:
 	material.emission = Color(1.0, 0.38, 0.05)
 	material.emission_energy_multiplier = 3.0
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mesh_instance.material_override = material
+	parent.add_child(mesh_instance)
+
+
+static func _impact(parent: Node3D) -> void:
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "Impact"
+	mesh_instance.visible = false
+	var mesh := SphereMesh.new()
+	mesh.radius = 1.15
+	mesh.height = 2.3
+	mesh_instance.mesh = mesh
+	mesh_instance.position = Vector3(0.0, 0.7, 0.0)
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(1.0, 0.45, 0.15, 0.35)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.emission_enabled = true
+	material.emission = Color(1.0, 0.35, 0.08)
+	material.emission_energy_multiplier = 2.0
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh_instance.material_override = material
 	parent.add_child(mesh_instance)

@@ -63,13 +63,14 @@ static func music_sample(time_s: float) -> float:
 
 
 func _ready() -> void:
+	GameSettings.load_state()
 	_audible = DisplayServer.get_name() != "headless"
 	_engine = _player("Engine", _wav(0.5, MIX_RATE, engine_sample), true)
 	_hit = _player("Hit", _wav(0.16, MIX_RATE, hit_sample), false)
 	_rise = _player("Rise", _wav(0.22, MIX_RATE, rise_sample), false)
 	if _audible:
 		_music = _player("Music", _wav(music_length(), MUSIC_RATE, music_sample), true)
-		_music.volume_db = -9.0
+		_music.volume_db = GameSettings.music_db()
 		_music.play()
 		_engine.play()
 
@@ -79,7 +80,7 @@ func apply_speed(speed_mps: float) -> void:
 		return
 	var blend := clampf((speed_mps - PlayerController.MIN_SPEED_MPS) / (RaceDirector.SPEED_CAP_MPS - PlayerController.MIN_SPEED_MPS), 0.0, 1.0)
 	_engine.pitch_scale = pitch_for_speed(speed_mps)
-	_engine.volume_db = lerpf(-22.0, -10.0, blend)
+	_engine.volume_db = GameSettings.sfx_db(lerpf(-22.0, -10.0, blend))
 
 
 func play_hit() -> void:
@@ -111,6 +112,7 @@ func _player(node_name: String, stream: AudioStreamWAV, looping: bool) -> AudioS
 func _restart(player: AudioStreamPlayer) -> void:
 	if not _audible or player == null:
 		return
+	player.volume_db = GameSettings.sfx_db(-6.0)
 	player.play()
 
 

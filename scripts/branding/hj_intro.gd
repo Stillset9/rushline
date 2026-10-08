@@ -161,4 +161,6 @@ func _setup_audio() -> void:
 	wav.stereo = true
 	wav.data = data
 	_audio.stream = wav
+	GameSettings.load_state()
+	_audio.volume_db = GameSettings.music_db()
 	_audio.play()

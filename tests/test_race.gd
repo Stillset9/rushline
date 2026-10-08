@@ -18,6 +18,12 @@ func run(tree: SceneTree) -> Array:
 		failed.append("distance %s" % player.position.z)
 	if hud_label.text != SpeedHud.format_speed(player.speed_mps):
 		failed.append("hud %s" % hud_label.text)
+	var paused_z := player.position.z
+	race.paused = true
+	race._process(1.0)
+	if not is_equal_approx(player.position.z, paused_z):
+		failed.append("pause moved")
+	race.paused = false
 	if race.score_keeper.multiplier != 1:
 		failed.append("clean multiplier %s" % race.score_keeper.multiplier)
 	if not is_equal_approx(race.score_keeper.score, race.distance_m):

@@ -19,6 +19,8 @@ var distance_m: float = 0.0
 var elapsed_s: float = 0.0
 var crashes: int = 0
 var finished: bool = false
+var paused: bool = false
+var hint_s: float = 0.0
 var restart_scene: bool = true
 var restarted: bool = false
 var score_keeper := ScoreKeeper.new()
@@ -81,13 +83,32 @@ func _ready() -> void:
 	_emit_distance_if_changed()
 	_emit_score_if_changed()
 	hud.show_nitro(player.nitro_tank)
+	if progress.races == 0:
+		hint_s = 8.0
+		hud.show_hint("A y D doblan · S frena · Shift nitro")
 
 
 func _process(delta: float) -> void:
 	if finished and Input.is_action_just_pressed("ui_accept"):
 		request_restart()
 		return
+	if not finished and Input.is_action_just_pressed("ui_cancel"):
+		set_paused(not paused)
+		return
+	if paused:
+		if Input.is_action_just_pressed("ui_accept"):
+			set_paused(false)
+		return
+	if hint_s > 0.0:
+		hint_s = maxf(0.0, hint_s - delta)
+		if hint_s == 0.0:
+			hud.show_hint("")
 	simulate(delta)
+
+
+func set_paused(next: bool) -> void:
+	paused = next
+	hud.show_pause(paused)
 
 
 func request_restart() -> void:
@@ -116,6 +137,7 @@ func simulate(delta: float) -> void:
 		score_keeper.register_hit()
 		score_keeper.add_hit_distance(travel_speed * delta)
 		race_audio.play_hit()
+		player.show_impact()
 	else:
 		score_keeper.add_clean_distance(travel_speed * delta)
 		if score_keeper.multiplier > multiplier_before:
@@ -132,6 +154,7 @@ func simulate(delta: float) -> void:
 		var shown := displayed_score(score_keeper.score)
 		var record := progress.note_finish(shown)
 		race_finished.emit(shown)
+		hud.show_hint("")
 		hud.show_standing(progress.best_score, progress.money, record)
 	road.tick(player.global_position.z)
 	street.follow(road.origins())
