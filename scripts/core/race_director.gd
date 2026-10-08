@@ -192,6 +192,8 @@ func _apply_world(state: Progress) -> void:
 	var sky := Course.sky_color(state.races, state.races)
 	var environment := world.environment.duplicate()
 	environment.background_color = sky
+	if OS.has_feature("web"):
+		environment.glow_enabled = false
 	environment.fog_enabled = float(state_weather["fog"]) > 0.0
 	environment.fog_density = float(state_weather["fog"])
 	environment.fog_light_color = sky
