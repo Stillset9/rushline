@@ -5,6 +5,7 @@ const POOL_SIZE := 12
 const SPAWN_INTERVAL := 1.2
 const SPAWN_AHEAD := 90.0
 const DESPAWN_BEHIND := 30.0
+const DESPAWN_AHEAD := 300.0
 const MIN_GAP := 18.0
 const LANE_CENTERS: Array[float] = [-4.0, 0.0, 4.0]
 const COLORS: Array[Color] = [
@@ -77,10 +78,11 @@ func tick(delta: float, player_z: float) -> void:
 		if not vehicle.active:
 			continue
 		vehicle.tick(delta)
-		if vehicle.global_position.z < player_z - DESPAWN_BEHIND:
+		var ahead := vehicle.global_position.z - player_z
+		if ahead < -DESPAWN_BEHIND or ahead > DESPAWN_AHEAD:
 			vehicle.deactivate()
 	_spawn_timer += delta
-	while _spawn_timer >= SPAWN_INTERVAL:
+	if _spawn_timer >= SPAWN_INTERVAL:
 		_spawn_timer -= SPAWN_INTERVAL
 		_try_spawn(player_z)
 

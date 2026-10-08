@@ -23,6 +23,20 @@ func run(tree: SceneTree) -> Array:
 	var expected_x := 10.0 * (1.0 - exp(-1.0))
 	if not is_equal_approx(moved.x, expected_x):
 		failed.append("smooth step %s" % moved.x)
+	var camera: Camera3D = camera_script.new()
+	tree.root.add_child(camera)
+	camera.snap_to(Vector3(0.0, 0.0, 0.0))
+	var speed := 70.0
+	var delta := 1.0 / 60.0
+	var t := 0.0
+	for _frame in 120:
+		t += delta
+		camera.tick(delta, Vector3(4.0, 0.0, speed * t))
+	if absf(camera.global_position.z - (speed * t - 12.0)) >= 1.0:
+		failed.append("forward lag %s" % camera.global_position.z)
+	if camera.global_position.x <= 0.0:
+		failed.append("lateral %s" % camera.global_position.x)
+	camera.queue_free()
 	if hud_script.format_speed(8.0) != "029 km/h":
 		failed.append("format 8")
 	if hud_script.format_speed(30.0) != "108 km/h":

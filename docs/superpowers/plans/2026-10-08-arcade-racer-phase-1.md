@@ -6,11 +6,11 @@
 
 **Architecture:** La simulación es plana (X lateral, Z hacia delante). La presentación es 3D con cámara alta e inclinada. `RaceDirector` es el único bucle: actualiza el techo de velocidad, mueve al jugador, integra la distancia y ordena a la carretera, al tráfico y a la cámara. Tramos y coches salen de reservas creadas al cargar.
 
-**Tech Stack:** Godot 4.3 o superior, GDScript, renderer Forward+, pruebas headless con `godot --headless --script`.
+**Tech Stack:** Godot 4.5 o superior, GDScript, renderer Forward+, pruebas headless con `godot --headless --script`.
 
 ## Global Constraints
 
-- Godot 4.3 o superior, GDScript, renderer Forward+.
+- Godot 4.5 o superior, GDScript, renderer Forward+.
 - Resolución base 1920×1080, estirado `viewport`, aspecto `expand`.
 - Escena principal: `res://scenes/race/race.tscn`.
 - Unidades internas: metros y segundos. El HUD muestra km/h con `int(round(m/s * 3.6))`.

@@ -5,7 +5,7 @@ config_version=5
 
 config/name="Carrera Arcade"
 run/main_scene="res://scenes/race/race.tscn"
-config/features=PackedStringArray("4.3", "Forward Plus")
+config/features=PackedStringArray("4.5", "Forward Plus")
 
 [display]
 

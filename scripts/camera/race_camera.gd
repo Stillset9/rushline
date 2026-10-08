@@ -35,7 +35,9 @@ func snap_to(player_position: Vector3) -> void:
 
 
 func tick(delta: float, player_position: Vector3) -> void:
-	global_position = smooth_position(global_position, target_position(player_position), delta)
+	var target := target_position(player_position)
+	var smoothed := smooth_position(global_position, target, delta)
+	global_position = Vector3(smoothed.x, target.y, target.z)
 	look_at(look_target(player_position), Vector3.UP)
 
 

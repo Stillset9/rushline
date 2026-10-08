@@ -21,8 +21,8 @@ var _shown_distance_m: int = -1
 @onready var race_camera: RaceCamera = $RaceCamera
 @onready var hud: SpeedHud = $SpeedHud
 
-static func planned_max_speed(elapsed_s: float) -> float:
-	return minf(SPEED_CAP_MPS, INITIAL_MAX_SPEED_MPS + MAX_SPEED_RAMP * elapsed_s)
+static func planned_max_speed(time_s: float) -> float:
+	return minf(SPEED_CAP_MPS, INITIAL_MAX_SPEED_MPS + MAX_SPEED_RAMP * time_s)
 
 
 static func displayed_kmh(speed_mps: float) -> int:
@@ -34,6 +34,7 @@ func begin_frame(delta: float) -> void:
 	max_speed_mps = planned_max_speed(elapsed_s)
 
 
+# Refleja la mitad de distancia de simulate.
 func advance_race(delta: float, speed_mps: float) -> void:
 	begin_frame(delta)
 	_commit_motion(speed_mps, delta)

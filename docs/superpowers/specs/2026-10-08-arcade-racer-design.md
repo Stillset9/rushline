@@ -14,7 +14,7 @@ Esa separación permite luces, sombras, reflejos, clima y ciclo de día y noche 
 
 ## Motor y proyecto
 
-- Godot 4.3 o superior.
+- Godot 4.5 o superior.
 - GDScript.
 - Renderer Forward+.
 - Resolución base 1920×1080.
@@ -116,7 +116,7 @@ La cámara es hija lógica del seguimiento, no del nodo del coche, para poder su
 
 - Objetivo de posición: X del jugador, Y = 18 m, Z del jugador − 12 m.
 - Mira a un punto 4 m por delante del jugador, a 1 m de altura.
-- La posición de la cámara se suaviza con `lerp(actual, objetivo, 1 - exp(-5 * delta))`.
+- La posición lateral se suaviza con `lerp(actual, objetivo, 1 - exp(-5 * delta))`. La altura y el desplazamiento hacia delante se aplican directamente.
 - FOV base: 60°. A 70 m/s llega a 72°, en proporción lineal con `speed_mps` entre 0 y 70.
 
 ## HUD

@@ -18,15 +18,15 @@ func _ready() -> void:
 
 
 static func initial_origins(player_z: float) -> Array[float]:
-	var origins: Array[float] = []
+	var chunk_origins: Array[float] = []
 	for i in CHUNK_COUNT:
-		origins.append(player_z - CHUNK_LENGTH + float(i) * CHUNK_LENGTH)
-	return origins
+		chunk_origins.append(player_z - CHUNK_LENGTH + float(i) * CHUNK_LENGTH)
+	return chunk_origins
 
 
-static func recycle_origins(origins: Array, player_z: float) -> Array[float]:
+static func recycle_origins(current_origins: Array, player_z: float) -> Array[float]:
 	var result: Array[float] = []
-	for origin in origins:
+	for origin in current_origins:
 		result.append(float(origin))
 	var guard := 0
 	while guard < 64:
@@ -61,6 +61,6 @@ func origins() -> Array[float]:
 	return values
 
 
-func _apply(origins: Array) -> void:
+func _apply(chunk_origins: Array) -> void:
 	for i in _chunks.size():
-		_chunks[i].position = Vector3(0.0, 0.0, float(origins[i]))
+		_chunks[i].position = Vector3(0.0, 0.0, float(chunk_origins[i]))
