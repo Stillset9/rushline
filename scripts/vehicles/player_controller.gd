@@ -34,3 +34,28 @@ static func step_x(x: float, lateral: float, delta: float) -> Vector2:
 	if next_x < -X_LIMIT or next_x > X_LIMIT:
 		return Vector2(clampf(next_x, -X_LIMIT, X_LIMIT), 0.0)
 	return Vector2(next_x, lateral)
+
+
+func _ready() -> void:
+	VehicleVisual.build(self)
+
+
+func tick(delta: float) -> void:
+	speed_mps = step_longitudinal(speed_mps, max_speed_mps, _is_braking(), delta)
+	lateral_speed_mps = step_lateral(lateral_speed_mps, _steer_value(), delta)
+	var x_step := step_x(position.x, lateral_speed_mps, delta)
+	lateral_speed_mps = x_step.y
+	position.x = x_step.x
+	position.z += speed_mps * delta
+
+
+func _is_braking() -> bool:
+	if not read_input_devices:
+		return brake_input
+	return Input.is_action_pressed("brake")
+
+
+func _steer_value() -> float:
+	if not read_input_devices:
+		return steer_input
+	return Input.get_axis("steer_left", "steer_right")
