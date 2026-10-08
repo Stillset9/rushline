@@ -21,6 +21,8 @@ var _audio_started := false
 @onready var _mark: HJMark = %Mark
 @onready var _name_label: Label = %NameLabel
 @onready var _game_label: Label = %GameLabel
+@onready var _rule: ColorRect = %Rule
+@onready var _flash: ColorRect = %Flash
 @onready var _audio: AudioStreamPlayer = %Audio
 
 
@@ -63,12 +65,16 @@ static func sample(time_s: float) -> float:
 		var tick := sin(TAU * 520.0 * impact_t)
 		var grit := sin(impact_t * 1703.0) * sin(impact_t * 917.0)
 		impact = (tick * 0.7 + grit * 0.28) * env
+	var hold := 0.0
+	if time_s >= MARK_END + 0.18 and time_s < HOLD_END:
+		var env := clampf((time_s - MARK_END) / 0.35, 0.0, 1.0) * clampf((HOLD_END - time_s) / 0.45, 0.0, 1.0)
+		hold = (sin(TAU * 110.0 * time_s) * 0.07 + sin(TAU * 165.0 * time_s) * 0.035) * env
 	var close := 0.0
 	if time_s >= HOLD_END:
 		var elapsed := time_s - HOLD_END
 		var freq := maxf(70.0, 210.0 - elapsed * 160.0)
 		close = sin(TAU * freq * elapsed) * exp(-elapsed * 3.5) * 0.22
-	return clampf(appear + impact + close, -1.0, 1.0)
+	return clampf(appear + impact + hold + close, -1.0, 1.0)
 
 
 func _ready() -> void:
@@ -126,8 +132,26 @@ func _ensure_audio() -> void:
 
 func _apply(state: Dictionary) -> void:
 	_mark.set_state(state["line"], state["mark"], state["energy"])
-	_name_label.modulate.a = state["name"]
-	_game_label.modulate.a = state["title"]
+	var name_alpha: float = state["name"]
+	var title_alpha: float = state["title"]
+	_name_label.modulate.a = name_alpha
+	_game_label.modulate.a = title_alpha
+	var name_shift := (1.0 - name_alpha) * 28.0
+	_name_label.offset_top = 168.0 + name_shift
+	_name_label.offset_bottom = 224.0 + name_shift
+	var title_shift := (1.0 - title_alpha) * 22.0
+	_game_label.offset_top = 232.0 + title_shift
+	_game_label.offset_bottom = 372.0 + title_shift
+	_game_label.pivot_offset = _game_label.size * 0.5
+	var title_scale := lerpf(0.92, 1.0, title_alpha)
+	_game_label.scale = Vector2(title_scale, title_scale)
+	_rule.modulate.a = name_alpha
+	_rule.scale.x = lerpf(0.15, 1.0, name_alpha)
+	var impact_t := time_s - MARK_END
+	var flash := 0.0
+	if impact_t >= 0.0 and impact_t < 0.14:
+		flash = (1.0 - impact_t / 0.14) * 0.22
+	_flash.modulate.a = flash
 	modulate.a = state["fade"]
 
 

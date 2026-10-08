@@ -103,7 +103,8 @@ func _is_braking() -> bool:
 func _steer_value() -> float:
 	if not read_input_devices:
 		return steer_input
-	return Input.get_axis("steer_left", "steer_right")
+	# The chase camera looks toward +Z, so screen-right is world -X.
+	return -Input.get_axis("steer_left", "steer_right")
 
 
 func _nitro_held() -> bool:

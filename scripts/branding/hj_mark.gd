@@ -17,17 +17,15 @@ func set_state(next_line: float, next_reveal: float, next_energy: float) -> void
 
 
 func _draw() -> void:
-	var width := maxf(4.0, minf(size.x, size.y) * 0.012)
+	var width := maxf(7.0, minf(size.x, size.y) * 0.018)
+	_brackets(width)
+	if energy > 0.0:
+		var radius := _span() * 0.86
+		draw_arc(_origin(), radius, -0.5, TAU * energy - 0.5, 72, Color(CORE, 0.42), maxf(1.5, width * 0.16), true)
 	_crossbar(width)
 	_stem(_at(30.0, 18.0), _at(30.0, 82.0), 0.0, 0.34, width)
 	_stem(_at(70.0, 18.0), _at(70.0, 82.0), 0.34, 0.68, width)
-	_stem(_at(70.0, 82.0), _at(64.0, 92.0), 0.68, 0.8, width)
-	_stem(_at(64.0, 92.0), _at(48.0, 96.0), 0.8, 0.92, width)
-	_stem(_at(48.0, 96.0), _at(40.0, 90.0), 0.92, 1.0, width)
-	if energy <= 0.0:
-		return
-	var radius := _span() * (0.72 + energy * 0.18)
-	draw_arc(_origin(), radius, -0.4, TAU * energy - 0.4, 48, Color(CORE, 0.45 * (1.0 - energy * 0.35)), width * 0.45)
+	_hook(width)
 
 
 func _crossbar(width: float) -> void:
@@ -45,13 +43,57 @@ func _stem(a: Vector2, b: Vector2, from: float, to: float, width: float) -> void
 	_glow(a, a.lerp(b, local), width)
 
 
+func _hook(width: float) -> void:
+	var keys: Array[Vector2] = [Vector2(70, 82), Vector2(64, 92), Vector2(48, 96), Vector2(40, 90)]
+	var marks: Array[float] = [0.68, 0.8, 0.92, 1.0]
+	if reveal <= marks[0]:
+		return
+	var points := PackedVector2Array([_at(keys[0].x, keys[0].y)])
+	for index in range(1, keys.size()):
+		var local := clampf((reveal - marks[index - 1]) / (marks[index] - marks[index - 1]), 0.0, 1.0)
+		var start := _at(keys[index - 1].x, keys[index - 1].y)
+		var finish := _at(keys[index].x, keys[index].y)
+		points.append(start.lerp(finish, local))
+		if local < 1.0:
+			break
+	if points.size() < 2:
+		return
+	var hook_width := width * 0.7
+	draw_polyline(points, Color(GLOW.r, GLOW.g, GLOW.b, 0.4), hook_width * 2.2, true)
+	draw_polyline(points, CORE, hook_width, true)
+	draw_polyline(points, Color(1, 1, 1, 0.9), maxf(1.5, hook_width * 0.18), true)
+
+
+func _brackets(width: float) -> void:
+	var alpha := clampf(reveal, 0.0, 1.0) * 0.7
+	if alpha <= 0.0:
+		return
+	var inset := minf(size.x, size.y) * 0.075
+	var arm := minf(size.x, size.y) * 0.04
+	var color := Color(CORE, alpha * 0.45)
+	var stroke := maxf(1.5, width * 0.16)
+	var corners: Array[Vector2] = [
+		Vector2(inset, inset),
+		Vector2(size.x - inset, inset),
+		Vector2(inset, size.y - inset),
+		Vector2(size.x - inset, size.y - inset),
+	]
+	var signs: Array[Vector2] = [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]
+	for index in corners.size():
+		var corner := corners[index]
+		var sign := signs[index]
+		draw_line(corner, corner + Vector2(sign.x * arm, 0.0), color, stroke, true)
+		draw_line(corner, corner + Vector2(0.0, sign.y * arm), color, stroke, true)
+
+
 func _glow(a: Vector2, b: Vector2, width: float) -> void:
-	draw_line(a, b, GLOW, width * 3.2, true)
+	draw_line(a, b, GLOW, width * 2.6, true)
 	draw_line(a, b, CORE, width, true)
+	draw_line(a, b, Color(1.0, 1.0, 1.0, 0.92), maxf(1.5, width * 0.18), true)
 
 
 static func origin_for(view: Vector2) -> Vector2:
-	return view * 0.5 + Vector2(0.0, -view.y * 0.06)
+	return view * 0.5 + Vector2(0.0, -view.y * 0.1)
 
 
 func _origin() -> Vector2:
@@ -59,7 +101,7 @@ func _origin() -> Vector2:
 
 
 func _span() -> float:
-	return minf(size.x, size.y) * 0.22
+	return minf(size.x, size.y) * 0.2
 
 
 func _at(x: float, y: float) -> Vector2:

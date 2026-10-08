@@ -28,5 +28,20 @@ func run(tree: SceneTree) -> Array:
 	player.tick(0.1)
 	if player.position.x >= 0.0:
 		failed.append("tick x %s" % player.position.x)
+	player.position.x = 0.0
+	player.lateral_speed_mps = 0.0
+	player.read_input_devices = true
+	Input.action_press("steer_right")
+	player.tick(0.2)
+	Input.action_release("steer_right")
+	if player.position.x >= 0.0:
+		failed.append("D should move right, x %s" % player.position.x)
+	player.position.x = 0.0
+	player.lateral_speed_mps = 0.0
+	Input.action_press("steer_left")
+	player.tick(0.2)
+	Input.action_release("steer_left")
+	if player.position.x <= 0.0:
+		failed.append("A should move left, x %s" % player.position.x)
 	player.queue_free()
 	return failed
