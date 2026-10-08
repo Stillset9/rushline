@@ -5,6 +5,7 @@ var active: bool = false
 var lane: int = 0
 var lane_x: float = 0.0
 var profile: AiProfile
+var in_contact: bool = false
 var _body: MeshInstance3D
 
 
@@ -16,6 +17,7 @@ func _ready() -> void:
 func activate(lane_index: int, world_position: Vector3, material: StandardMaterial3D, scale_factor: float) -> void:
 	active = true
 	visible = true
+	in_contact = false
 	lane = lane_index
 	lane_x = world_position.x
 	global_position = world_position
@@ -26,6 +28,7 @@ func activate(lane_index: int, world_position: Vector3, material: StandardMateri
 func deactivate() -> void:
 	active = false
 	visible = false
+	in_contact = false
 
 
 func tick(delta: float) -> void:

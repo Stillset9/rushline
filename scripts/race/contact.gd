@@ -21,3 +21,18 @@ static func speed_after_hits(speed: float, hits: int) -> float:
 	for _i in hits:
 		result = maxf(PlayerController.MIN_SPEED_MPS, result - SPEED_DROP)
 	return result
+
+
+static func collect_new_hits(player_position: Vector3, vehicles: Array[TrafficVehicle]) -> int:
+	var hits := 0
+	var player_center := Vector2(player_position.x, player_position.z)
+	var player_half := half_extents(1.0)
+	for vehicle in vehicles:
+		if not vehicle.active:
+			continue
+		var center := Vector2(vehicle.global_position.x, vehicle.global_position.z)
+		var overlapping := overlaps(player_center, player_half, center, half_extents(vehicle.scale.x))
+		if overlapping and not vehicle.in_contact:
+			hits += 1
+		vehicle.in_contact = overlapping
+	return hits
