@@ -61,6 +61,12 @@ func origins() -> Array[float]:
 	return values
 
 
+func apply_palette(asphalt: Color, paint: Color) -> void:
+	for chunk in _chunks:
+		if chunk is RoadChunk:
+			(chunk as RoadChunk).apply_palette(asphalt, paint)
+
+
 func _apply(chunk_origins: Array) -> void:
 	for i in _chunks.size():
 		_chunks[i].position = Vector3(0.0, 0.0, float(chunk_origins[i]))

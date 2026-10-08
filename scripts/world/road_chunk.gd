@@ -28,3 +28,15 @@ func _add_box(at: Vector3, size: Vector3, color: Color) -> void:
 	material.albedo_color = color
 	mesh_instance.material_override = material
 	add_child(mesh_instance)
+
+
+func apply_palette(asphalt: Color, paint: Color) -> void:
+	for child in get_children():
+		var mesh_instance := child as MeshInstance3D
+		if mesh_instance == null:
+			continue
+		var box := mesh_instance.mesh as BoxMesh
+		var material := mesh_instance.material_override as StandardMaterial3D
+		if box == null or material == null:
+			continue
+		material.albedo_color = asphalt if box.size.x > 1.0 else paint

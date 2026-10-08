@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/race_director.gd" id="1_director"]
 [ext_resource type="Script" path="res://scripts/world/road_streamer.gd" id="2_road"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scripts/traffic/traffic_manager.gd" id="4_traffic"]
 [ext_resource type="Script" path="res://scripts/camera/race_camera.gd" id="5_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/speed_hud.tscn" id="6_hud"]
+[ext_resource type="Script" path="res://scripts/world/oil_manager.gd" id="7_oil"]
+[ext_resource type="Script" path="res://scripts/audio/race_audio.gd" id="8_audio"]
 
 [sub_resource type="Environment" id="Environment_race"]
 background_mode = 1
@@ -30,6 +32,12 @@ script = ExtResource("2_road")
 
 [node name="TrafficManager" type="Node3D" parent="."]
 script = ExtResource("4_traffic")
+
+[node name="OilManager" type="Node3D" parent="."]
+script = ExtResource("7_oil")
+
+[node name="RaceAudio" type="Node" parent="."]
+script = ExtResource("8_audio")
 
 [node name="RaceCamera" type="Camera3D" parent="."]
 current = true

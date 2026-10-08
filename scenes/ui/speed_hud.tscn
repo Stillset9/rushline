@@ -16,7 +16,7 @@ script = ExtResource("1_hud")
 offset_left = 24.0
 offset_top = 24.0
 offset_right = 280.0
-offset_bottom = 220.0
+offset_bottom = 252.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="SpeedLabel" type="Label" parent="Panel"]
@@ -62,3 +62,73 @@ offset_bottom = 172.0
 theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
 theme_override_font_sizes/font_size = 22
 text = "×1"
+
+[node name="NitroLabel" type="Label" parent="Panel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 16.0
+offset_top = 176.0
+offset_right = 240.0
+offset_bottom = 208.0
+theme_override_colors/font_color = Color(0.74, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "Nitro 100%"
+
+[node name="CourseLabel" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = 1480.0
+offset_top = 28.0
+offset_right = 1896.0
+offset_bottom = 64.0
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 22
+text = "Ciudad · Despejado"
+horizontal_alignment = 2
+
+[node name="FinishLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 64
+text = "Fin"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RestartHint" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -150.0
+offset_bottom = -90.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.95, 0.94, 0.9, 1)
+theme_override_font_sizes/font_size = 28
+text = "Enter, Start o A para otra vez"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StandingLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -250.0
+offset_bottom = -160.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.74, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "Récord"
+horizontal_alignment = 1
+vertical_alignment = 1

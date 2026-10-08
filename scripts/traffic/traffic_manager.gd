@@ -18,6 +18,13 @@ const SCALES: Array[float] = [0.95, 1.0, 1.05, 0.97]
 
 const VEHICLE_SCENE := preload("res://scenes/vehicles/traffic_vehicle.tscn")
 const DEFAULT_PROFILE: AiProfile = preload("res://traffic/profiles/normal.tres")
+const PROFILES: Array[AiProfile] = [
+	preload("res://traffic/profiles/normal.tres"),
+	preload("res://traffic/profiles/rapido.tres"),
+	preload("res://traffic/profiles/pesado.tres"),
+	preload("res://traffic/profiles/agresivo.tres"),
+]
+const HEAVY_SCALE := 1.28
 
 var profile: AiProfile
 var _pool: Array[TrafficVehicle] = []
@@ -58,6 +65,23 @@ static func choose_lane(spawn_z: float, occupants: Array) -> int:
 	return best_lane
 
 
+static func choose_lane_change(lane: int, z: float, occupants: Array) -> int:
+	var best_lane := -1
+	var best_distance := -1.0
+	var offsets: Array[int] = [-1, 1]
+	for offset in offsets:
+		var candidate := lane + offset
+		if candidate < 0 or candidate > 2:
+			continue
+		var nearest := _nearest_distance(z, candidate, occupants)
+		if nearest < MIN_GAP:
+			continue
+		if nearest > best_distance:
+			best_distance = nearest
+			best_lane = candidate
+	return best_lane
+
+
 static func _lane_is_free(spawn_z: float, lane: int, occupants: Array) -> bool:
 	for occupant in occupants:
 		if int(occupant["lane"]) == lane and absf(float(occupant["z"]) - spawn_z) < MIN_GAP:
@@ -82,6 +106,14 @@ func tick(delta: float, player_z: float) -> void:
 		if not vehicle.active:
 			continue
 		vehicle.tick(delta)
+		if vehicle.profile != null and vehicle.profile.lane_change_interval > 0.0:
+			vehicle.lane_timer += delta
+			if vehicle.lane_timer >= vehicle.profile.lane_change_interval:
+				vehicle.lane_timer = 0.0
+				var next := choose_lane_change(vehicle.lane, vehicle.global_position.z, _occupants(vehicle))
+				if next != -1:
+					vehicle.lane = next
+					vehicle.lane_x = lane_center(next)
 		var ahead := vehicle.global_position.z - player_z
 		if ahead < -DESPAWN_BEHIND or ahead > DESPAWN_AHEAD:
 			vehicle.deactivate()
@@ -105,11 +137,16 @@ func _try_spawn(player_z: float) -> void:
 		return
 	var style := _style_index
 	_style_index += 1
+	var chosen := PROFILES[style % PROFILES.size()]
+	var body_scale := SCALES[style % SCALES.size()]
+	if chosen.id == "pesado":
+		body_scale = HEAVY_SCALE
+	vehicle.profile = chosen
 	vehicle.activate(
 		lane,
 		Vector3(lane_center(lane), 0.0, spawn_z),
 		_materials[style % COLORS.size()],
-		SCALES[style % SCALES.size()]
+		body_scale
 	)
 
 
@@ -118,3 +155,11 @@ func _inactive_vehicle() -> TrafficVehicle:
 		if not vehicle.active:
 			return vehicle
 	return null
+
+
+func _occupants(except: TrafficVehicle) -> Array:
+	var occupants: Array = []
+	for other in _pool:
+		if other.active and other != except:
+			occupants.append({"lane": other.lane, "z": other.global_position.z})
+	return occupants

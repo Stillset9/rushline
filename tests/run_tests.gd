@@ -25,6 +25,7 @@ func _initialize() -> void:
 
 
 func _run_all() -> void:
+	Progress.isolated = true
 	var failed := 0
 	var dir := DirAccess.open("res://tests")
 	if dir == null:

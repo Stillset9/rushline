@@ -18,6 +18,9 @@ func run(_tree: SceneTree) -> Array:
 	var gripped: float = player.step_lateral(12.0, 0.0, 0.5)
 	if not is_equal_approx(gripped, 3.0):
 		failed.append("grip %s" % gripped)
+	var slipped: float = player.step_lateral(0.0, 1.0, 0.1, PlayerController.SLIP_GRIP)
+	if absf(slipped - 0.504) > 0.001 or slipped >= steered:
+		failed.append("slip %s" % slipped)
 	var slid: Vector2 = player.step_x(0.0, 2.0, 0.5)
 	if not is_equal_approx(slid.x, 1.0) or not is_equal_approx(slid.y, 2.0):
 		failed.append("slide %s" % slid)

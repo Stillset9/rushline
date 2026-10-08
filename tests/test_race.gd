@@ -49,8 +49,12 @@ func run(tree: SceneTree) -> Array:
 	var camera: Camera3D = race.get_node("RaceCamera")
 	if absf(camera.fov - RaceCamera.fov_for_speed(player.speed_mps)) > 0.5:
 		failed.append("fov %s" % camera.fov)
+	var finish_label: Label = race.get_node("SpeedHud/FinishLabel")
+	if finish_label.visible:
+		failed.append("finish early")
 	race.queue_free()
 	failed.append_array(_hit_episode(tree))
+	failed.append_array(_finish_episode(tree))
 	return failed
 
 
@@ -83,5 +87,43 @@ func _hit_episode(tree: SceneTree) -> Array:
 	race.simulate(0.05)
 	if absf(player.speed_mps - 15.4) > 0.02:
 		failed.append("second speed %s" % player.speed_mps)
+	if race.finished:
+		failed.append("ended too soon")
+	race.queue_free()
+	return failed
+
+
+func _finish_episode(tree: SceneTree) -> Array:
+	var failed: Array[String] = []
+	var race: Node = load("res://scenes/race/race.tscn").instantiate()
+	tree.root.add_child(race)
+	race.set_process(false)
+	var player: PlayerController = race.get_node("PlayerVehicle")
+	player.speed_mps = 30.0
+	var traffic: TrafficManager = race.get_node("TrafficManager")
+	for index in RaceDirector.HITS_TO_END:
+		var vehicle: TrafficVehicle = traffic.vehicles()[index]
+		vehicle.activate(1, player.global_position, StandardMaterial3D.new(), 1.0)
+	race.simulate(0.05)
+	if not race.finished or race.crashes < RaceDirector.HITS_TO_END:
+		failed.append("not finished %s crashes %s" % [race.finished, race.crashes])
+	var frozen_z := player.position.z
+	var frozen_score: float = race.score_keeper.score
+	var frozen_distance: float = race.distance_m
+	var finish_label: Label = race.get_node("SpeedHud/FinishLabel")
+	if not finish_label.visible or finish_label.text != "Fin\n%s" % SpeedHud.format_score(RaceDirector.displayed_score(frozen_score)):
+		failed.append("finish label %s" % finish_label.text)
+	var hint: Label = race.get_node("SpeedHud/RestartHint")
+	if not hint.visible or hint.text != "Enter, Start o A para otra vez":
+		failed.append("restart hint %s" % hint.text)
+	race.restart_scene = false
+	race.request_restart()
+	if not race.restarted:
+		failed.append("restart")
+	race.simulate(0.05)
+	if not is_equal_approx(player.position.z, frozen_z):
+		failed.append("moved after finish")
+	if not is_equal_approx(race.score_keeper.score, frozen_score) or not is_equal_approx(race.distance_m, frozen_distance):
+		failed.append("score moved after finish")
 	race.queue_free()
 	return failed

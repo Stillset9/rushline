@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AiProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/traffic/ai_profile.gd" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+id = "agresivo"
+speed_mps = 26.0
+lane_change_interval = 1.6
+aggression = 1.0
