@@ -8,12 +8,13 @@ const PAINT := Color(0.9, 0.88, 0.84)
 
 func _ready() -> void:
 	_add_box(Vector3(0.0, 0.0, LENGTH * 0.5), Vector3(14.0, 0.1, LENGTH), ASPHALT)
-	_add_box(Vector3(-6.0, 0.02, LENGTH * 0.5), Vector3(0.12, 0.04, LENGTH), PAINT)
-	_add_box(Vector3(6.0, 0.02, LENGTH * 0.5), Vector3(0.12, 0.04, LENGTH), PAINT)
+	# La pintura debe quedar sobre el asfalto; si no, queda oculta bajo la losa.
+	_add_box(Vector3(-6.0, 0.06, LENGTH * 0.5), Vector3(0.12, 0.02, LENGTH), PAINT)
+	_add_box(Vector3(6.0, 0.06, LENGTH * 0.5), Vector3(0.12, 0.02, LENGTH), PAINT)
 	var dash_z := 1.0
 	while dash_z < LENGTH:
-		_add_box(Vector3(-2.0, 0.02, dash_z), Vector3(0.12, 0.04, 2.0), PAINT)
-		_add_box(Vector3(2.0, 0.02, dash_z), Vector3(0.12, 0.04, 2.0), PAINT)
+		_add_box(Vector3(-2.0, 0.06, dash_z), Vector3(0.12, 0.02, 2.0), PAINT)
+		_add_box(Vector3(2.0, 0.06, dash_z), Vector3(0.12, 0.02, 2.0), PAINT)
 		dash_z += 4.0
 
 

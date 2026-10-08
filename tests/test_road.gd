@@ -20,5 +20,13 @@ func run(tree: SceneTree) -> Array:
 	tree.root.add_child(chunk)
 	if chunk.get_child_count() != 23:
 		failed.append("markings %s" % chunk.get_child_count())
+	for child in chunk.get_children():
+		var mesh_instance := child as MeshInstance3D
+		var box := mesh_instance.mesh as BoxMesh
+		if is_equal_approx(box.size.x, 14.0):
+			continue
+		var top_y := mesh_instance.position.y + box.size.y * 0.5
+		if top_y <= 0.05:
+			failed.append("paint top %s" % top_y)
 	chunk.queue_free()
 	return failed
