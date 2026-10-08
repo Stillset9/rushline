@@ -73,6 +73,10 @@ static func _nearest_distance(spawn_z: float, lane: int, occupants: Array) -> fl
 	return best
 
 
+func vehicles() -> Array[TrafficVehicle]:
+	return _pool
+
+
 func tick(delta: float, player_z: float) -> void:
 	for vehicle in _pool:
 		if not vehicle.active:

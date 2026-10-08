@@ -30,5 +30,11 @@ func run(_tree: SceneTree) -> Array:
 		failed.append("distance signals %s" % distances.size())
 	if not is_equal_approx(director.distance_m, 2.0):
 		failed.append("distance %s" % director.distance_m)
+	if director_script.displayed_score(750.4) != 750:
+		failed.append("truncate")
+	var score_before: float = director.score_keeper.score
+	director.advance_race(1.0, 20.0)
+	if not is_equal_approx(director.score_keeper.score, score_before) or director.score_keeper.multiplier != 1:
+		failed.append("advance scored")
 	director.free()
 	return failed
