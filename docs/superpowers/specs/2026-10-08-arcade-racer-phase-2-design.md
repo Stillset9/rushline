@@ -85,7 +85,7 @@ El HUD sigue siendo `SpeedHud`. El panel de la esquina superior izquierda pasa d
 4. Guardar `travel_speed = player.speed_mps`. Esa es la velocidad con la que este frame ya se movió.
 5. `hits = Contact.collect_new_hits(...)`.
 6. Si `hits > 0`, asignar `player.speed_mps = Contact.speed_after_hits(travel_speed, hits)`, llamar a `register_hit` y a `add_hit_distance(travel_speed * delta)`. Si no, llamar a `add_clean_distance(travel_speed * delta)`.
-7. `_commit_motion(travel_speed, delta)`. La distancia del director usa la velocidad de antes del golpe, la misma que movió al coche.
+7. Sumar la distancia con `travel_speed` y emitir `speed_changed` con `player.speed_mps` ya penalizada. La distancia del director usa la velocidad de antes del golpe, la misma que movió al coche.
 8. Emitir `score_changed` si la parte entera o el multiplicador cambiaron respecto a lo último emitido.
 9. `road.tick` y `race_camera.tick`, como en la Fase 1.
 
@@ -115,7 +115,7 @@ Funciones puras, más un frame de la escena de carrera. La salida vacía sigue s
 
 `tests/test_race.gd` mantiene sus comprobaciones de la Fase 1. En esos 3 s no hay contacto: la velocidad sigue en 30,45 m/s, el multiplicador en 1 y los puntos enteros coinciden con los metros enteros de la distancia. Sigue sin haber ningún `CollisionShape3D`.
 
-Un caso nuevo en esa escena: un coche de tráfico activo colocado sobre el jugador, velocidad del jugador 30 m/s, `delta` 0,05 s y el reloj de carrera en 0. El techo de ese primer frame sube un poco por la rampa de 0,15 m/s², así que la velocidad de viaje queda un pelo por encima de 30. Tras ese `simulate`, la velocidad queda en la velocidad de viaje menos 15 m/s, a no más de 0,02 m/s de 15. La distancia y los puntos suben esa velocidad de viaje por 0,05, a no más de 0,02 de 1,5. Las etiquetas muestran `1 m` y `1 pts`, porque solo enseñan enteros. El tráfico sigue activo. Un segundo `simulate`, todavía cruzados, no resta otros 15 m/s: el jugador acelera 0,4 m/s y termina a no más de 0,02 m/s de 15,4.
+Un caso nuevo en esa escena: un coche de tráfico activo colocado sobre el jugador, velocidad del jugador 30 m/s, marcador en 750 puntos, multiplicador 3 y 50 m limpios, `delta` 0,05 s y el reloj de carrera en 0. El techo de ese primer frame sube un poco por la rampa de 0,15 m/s², así que la velocidad de viaje queda un pelo por encima de 30. Tras ese `simulate`, la velocidad queda en la velocidad de viaje menos 15 m/s, a no más de 0,02 m/s de 15. La distancia sube esa velocidad de viaje por 0,05, a no más de 0,02 de 1,5. Los puntos quedan a no más de 0,02 de 751,5, el multiplicador en 1 y los metros limpios en 0. Las etiquetas muestran `1 m` y `751 pts`, porque solo enseñan enteros. El tráfico sigue activo. Un segundo `simulate`, todavía cruzados, no resta otros 15 m/s: el jugador acelera 0,4 m/s y termina a no más de 0,02 m/s de 15,4.
 
 `tests/test_camera_hud.gd` conserva el formato de velocidad y comprueba `0 m`, `0 pts` y `×1`. Al recibir la señal 750 y ×3, las etiquetas quedan `750 pts` y `×3`.
 
