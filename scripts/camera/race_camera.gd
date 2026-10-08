@@ -1,10 +1,10 @@
 class_name RaceCamera
 extends Camera3D
 
-const HEIGHT := 18.0
-const BEHIND := 12.0
-const LOOK_AHEAD := 4.0
-const LOOK_HEIGHT := 1.0
+const HEIGHT := 7.5
+const BEHIND := 10.5
+const LOOK_AHEAD := 12.0
+const LOOK_HEIGHT := 1.4
 const SMOOTH := 5.0
 const FOV_BASE := 60.0
 const FOV_AT_CAP := 72.0

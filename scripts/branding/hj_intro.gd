@@ -72,6 +72,7 @@ static func sample(time_s: float) -> float:
 
 
 func _ready() -> void:
+	theme = preload("res://ui/rushline_theme.tres")
 	_name_label.text = "HJgames presents"
 	_name_label.modulate.a = 0.0
 	_game_label.text = "RUSHLINE"

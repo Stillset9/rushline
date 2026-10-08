@@ -15,6 +15,7 @@ var selection := 0
 
 
 func _ready() -> void:
+	theme = preload("res://ui/rushline_theme.tres")
 	_options = [%PlayLabel, %GarageLabel, %QuitLabel]
 	var state := Progress.load_state()
 	%StatusLabel.text = "Dinero %d cr · Récord %d" % [state.money, state.best_score]

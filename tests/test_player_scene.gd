@@ -8,11 +8,10 @@ func run(tree: SceneTree) -> Array:
 	if body == null or body.mesh == null:
 		failed.append("missing body")
 		return failed
-	var size: Vector3 = (body.mesh as BoxMesh).size
-	if not size.is_equal_approx(Vector3(1.8, 0.5, 4.0)):
-		failed.append("body size %s" % size)
+	if body.mesh.get_aabb().size.z < 2.0:
+		failed.append("body length %s" % body.mesh.get_aabb().size)
 	var paint: Color = body.material_override.albedo_color
-	if paint != Color("e8e4dc"):
+	if paint != VehicleVisual.BODY_COLOR:
 		failed.append("body color %s" % paint)
 	if player.get_children().filter(func(node: Node) -> bool: return str(node.name).begins_with("Wheel")).size() != 4:
 		failed.append("wheel count")

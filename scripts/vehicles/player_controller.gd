@@ -77,6 +77,8 @@ func tick(delta: float) -> void:
 	lateral_speed_mps = x_step.y
 	position.x = x_step.x
 	position.z += speed_mps * delta
+	VehicleVisual.spin_wheels(self, speed_mps, delta)
+	VehicleVisual.show_boost(self, boosting)
 
 
 func _is_braking() -> bool:

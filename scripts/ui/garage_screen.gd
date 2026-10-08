@@ -15,6 +15,7 @@ var _rows: Array[Label] = []
 
 
 func _ready() -> void:
+	theme = preload("res://ui/rushline_theme.tres")
 	_rows = [%RowMotor, %RowTope, %RowNitro]
 	progress = Progress.load_state()
 	refresh()

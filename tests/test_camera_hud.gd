@@ -5,10 +5,10 @@ func run(tree: SceneTree) -> Array:
 	var camera_script: GDScript = load("res://scripts/camera/race_camera.gd")
 	var hud_script: GDScript = load("res://scripts/ui/speed_hud.gd")
 	var target: Vector3 = camera_script.target_position(Vector3(2.0, 0.0, 10.0))
-	if not target.is_equal_approx(Vector3(2.0, 18.0, -2.0)):
+	if not target.is_equal_approx(Vector3(2.0, 7.5, -0.5)):
 		failed.append("target %s" % target)
 	var look: Vector3 = camera_script.look_target(Vector3(2.0, 0.0, 10.0))
-	if not look.is_equal_approx(Vector3(2.0, 1.0, 14.0)):
+	if not look.is_equal_approx(Vector3(2.0, 1.4, 22.0)):
 		failed.append("look %s" % look)
 	if not is_equal_approx(camera_script.fov_for_speed(0.0), 60.0):
 		failed.append("fov low")
@@ -32,7 +32,7 @@ func run(tree: SceneTree) -> Array:
 	for _frame in 120:
 		t += delta
 		camera.tick(delta, Vector3(4.0, 0.0, speed * t))
-	if absf(camera.global_position.z - (speed * t - 12.0)) >= 1.0:
+	if absf(camera.global_position.z - (speed * t - 10.5)) >= 1.0:
 		failed.append("forward lag %s" % camera.global_position.z)
 	if camera.global_position.x <= 0.0:
 		failed.append("lateral %s" % camera.global_position.x)

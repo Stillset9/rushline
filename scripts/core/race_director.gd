@@ -31,6 +31,8 @@ var _shown_multiplier: int = 0
 
 @onready var player: PlayerController = $PlayerVehicle
 @onready var road: RoadStreamer = $RoadStreamer
+@onready var street: StreetDressing = $StreetDressing
+@onready var rain: RainStreaks = $RaceCamera/Rain
 @onready var traffic: TrafficManager = $TrafficManager
 @onready var oil: OilManager = $OilManager
 @onready var race_audio: RaceAudio = $RaceAudio
@@ -66,6 +68,7 @@ func _ready() -> void:
 	_apply_tune(progress)
 	player.max_speed_mps = max_speed_mps
 	road.setup(player.global_position.z)
+	street.follow(road.origins())
 	_apply_world(progress)
 	race_camera.snap_to(player.global_position)
 	speed_changed.connect(hud.show_speed)
@@ -131,6 +134,7 @@ func simulate(delta: float) -> void:
 		race_finished.emit(shown)
 		hud.show_standing(progress.best_score, progress.money, record)
 	road.tick(player.global_position.z)
+	street.follow(road.origins())
 	race_camera.tick(delta, player.global_position)
 
 
@@ -182,6 +186,8 @@ func _apply_world(state: Progress) -> void:
 	var place := Course.theme(state.races)
 	var state_weather := Course.weather(state.races)
 	road.apply_palette(place["asphalt"], place["paint"])
+	street.apply_place(str(place["id"]))
+	rain.set_active(str(state_weather["id"]) == "lluvia")
 	player.weather_grip = float(state_weather["grip"])
 	var sky := Course.sky_color(state.races, state.races)
 	var environment := world.environment.duplicate()

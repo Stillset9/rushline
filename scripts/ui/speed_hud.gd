@@ -12,6 +12,18 @@ extends CanvasLayer
 @onready var _standing_label: Label = %StandingLabel
 
 
+func _ready() -> void:
+	var font_theme: Theme = preload("res://ui/rushline_theme.tres")
+	_apply_font(self, font_theme)
+
+
+func _apply_font(node: Node, font_theme: Theme) -> void:
+	if node is Control:
+		(node as Control).theme = font_theme
+	for child in node.get_children():
+		_apply_font(child, font_theme)
+
+
 static func format_speed(speed_mps: float) -> String:
 	return "%03d km/h" % int(round(speed_mps * 3.6))
 

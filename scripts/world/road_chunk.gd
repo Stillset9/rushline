@@ -26,8 +26,29 @@ func _add_box(at: Vector3, size: Vector3, color: Color) -> void:
 	mesh_instance.position = at
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
+	material.roughness = 0.96 if size.x > 1.0 else 0.55
+	if size.x > 1.0:
+		material.albedo_texture = _asphalt_grain()
+		material.uv1_triplanar = true
+		material.uv1_scale = Vector3(0.22, 0.22, 0.22)
 	mesh_instance.material_override = material
 	add_child(mesh_instance)
+
+
+static func _asphalt_grain() -> NoiseTexture2D:
+	if _grain == null:
+		var noise := FastNoiseLite.new()
+		noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+		noise.frequency = 0.045
+		_grain = NoiseTexture2D.new()
+		_grain.width = 128
+		_grain.height = 128
+		_grain.seamless = true
+		_grain.noise = noise
+	return _grain
+
+
+static var _grain: NoiseTexture2D
 
 
 func apply_palette(asphalt: Color, paint: Color) -> void:
