@@ -53,6 +53,14 @@ const THEMES: Array[Dictionary] = [
 		"paint": Color(0.86, 0.52, 0.16),
 		"sky": Color(0.42, 0.4, 0.36),
 	},
+	{
+		"id": "noche",
+		"name": "Noche",
+		"asphalt": Color(0.07, 0.08, 0.1),
+		"paint": Color(0.72, 0.8, 0.95),
+		"sky": Color(0.015, 0.02, 0.06),
+		"night": true,
+	},
 ]
 
 const WEATHERS: Array[Dictionary] = [

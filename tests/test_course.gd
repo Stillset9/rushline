@@ -2,7 +2,7 @@ extends RefCounted
 
 func run(tree: SceneTree) -> Array:
 	var failed: Array[String] = []
-	if Course.theme_count() != 7:
+	if Course.theme_count() != 8:
 		failed.append("themes %s" % Course.theme_count())
 	if Course.weather_count() != 3:
 		failed.append("weathers %s" % Course.weather_count())
@@ -18,8 +18,12 @@ func run(tree: SceneTree) -> Array:
 	var seen: Dictionary = {}
 	for index in Course.theme_count():
 		seen[str(Course.theme(index)["id"])] = true
-	if seen.size() != 7:
+	if seen.size() != 8:
 		failed.append("unique %s" % seen.keys())
+	if not bool(Course.theme(7).get("night", false)) or str(Course.theme(7)["id"]) != "noche":
+		failed.append("night theme")
+	if bool(Course.theme(0).get("night", false)):
+		failed.append("day theme")
 	var chunk := RoadChunk.new()
 	tree.root.add_child(chunk)
 	chunk.apply_palette(Color(1, 0, 0), Color(0, 1, 0))
@@ -48,6 +52,11 @@ func run(tree: SceneTree) -> Array:
 		span = maxf(span, absf(point.x))
 	if span < 20.0:
 		failed.append("map span %s" % span)
+	var street := StreetDressing.new()
+	tree.root.add_child(street)
+	if street.blocks_road() or street.blocks_path():
+		failed.append("buildings on road")
+	street.queue_free()
 	return failed
 
 

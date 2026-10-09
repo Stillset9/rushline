@@ -40,7 +40,10 @@ const GROUND := {
 	"nieve": Color(0.78, 0.82, 0.86),
 	"atardecer": Color(0.12, 0.07, 0.06),
 	"industrial": Color(0.1, 0.1, 0.09),
+	"noche": Color(0.03, 0.035, 0.04),
 }
+
+const ROAD_CLEAR := 17.0
 
 var _blocks: Array[Node3D] = []
 var _fill: MeshInstance3D
@@ -66,7 +69,7 @@ func follow(chunk_origins: Array) -> void:
 
 
 func apply_place(theme_id: String) -> void:
-	var city := theme_id == "ciudad" or theme_id == "atardecer" or theme_id == "industrial"
+	var city := theme_id == "ciudad" or theme_id == "atardecer" or theme_id == "industrial" or theme_id == "noche"
 	var ground_color: Color = GROUND.get(theme_id, GROUND["ciudad"])
 	for block in _blocks:
 		block.get_node("City").visible = city
@@ -150,7 +153,86 @@ func _make_block(index: int) -> Node3D:
 	_stand(snow, PINE, Vector3(13.0, 0.0, 22.0), 13.0, 0.8, true)
 	_stand(snow, PINE, Vector3(-14.5, 0.0, 32.0), 9.0, -0.4, true)
 	snow.visible = false
+	for group_name in ["City", "Palms", "Desert", "Forest", "Snow"]:
+		var group := block.get_node(group_name)
+		for child in group.get_children():
+			if child is Node3D:
+				_keep_off_road(child as Node3D)
 	return block
+
+
+func blocks_path() -> bool:
+	var origins: Array = []
+	for index in _blocks.size():
+		origins.append(480.0 + float(index) * 40.0)
+	follow(origins)
+	for block in _blocks:
+		for group_name in ["City", "Palms", "Desert", "Forest", "Snow"]:
+			var group := block.get_node(group_name)
+			for child in group.get_children():
+				var node := child as Node3D
+				if node == null:
+					continue
+				var local := _bounds(node)
+				if local.size.y < 4.0:
+					continue
+				var box := node.global_transform * local
+				var along := 470.0
+				while along < 820.0:
+					var framed := CoursePath.pose(along, 0.0)
+					var point: Vector3 = framed.position
+					if _xz_gap(box, point) < 7.0:
+						return true
+					along += 8.0
+	return false
+
+
+func blocks_road() -> bool:
+	for block in _blocks:
+		for group_name in ["City", "Palms", "Desert", "Forest", "Snow"]:
+			var group := block.get_node(group_name)
+			for child in group.get_children():
+				var node := child as Node3D
+				if node == null:
+					continue
+				var local := _bounds(node)
+				if local.size.y < 4.0:
+					continue
+				var box := node.transform * local
+				var min_x := box.position.x
+				var max_x := box.position.x + box.size.x
+				if min_x < ROAD_CLEAR and max_x > -ROAD_CLEAR:
+					return true
+	return false
+
+
+func _xz_gap(box: AABB, point: Vector3) -> float:
+	var dx := 0.0
+	if point.x < box.position.x:
+		dx = box.position.x - point.x
+	elif point.x > box.position.x + box.size.x:
+		dx = point.x - (box.position.x + box.size.x)
+	var dz := 0.0
+	if point.z < box.position.z:
+		dz = box.position.z - point.z
+	elif point.z > box.position.z + box.size.z:
+		dz = point.z - (box.position.z + box.size.z)
+	return Vector2(dx, dz).length()
+
+
+func _keep_off_road(node: Node3D) -> void:
+	var local := _bounds(node)
+	if local.size.y < 1.2:
+		return
+	var box := node.transform * local
+	var min_x := box.position.x
+	var max_x := box.position.x + box.size.x
+	if min_x >= ROAD_CLEAR or max_x <= -ROAD_CLEAR:
+		return
+	if node.position.x >= 0.0:
+		node.position.x += ROAD_CLEAR - min_x
+	else:
+		node.position.x -= max_x + ROAD_CLEAR
 
 
 func _group(parent: Node3D, node_name: String) -> Node3D:

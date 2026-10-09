@@ -44,8 +44,11 @@ var _shown_multiplier: int = 0
 @onready var race_camera: RaceCamera = $RaceCamera
 @onready var hud: SpeedHud = $SpeedHud
 @onready var world: WorldEnvironment = $WorldEnvironment
+@onready var sun: DirectionalLight3D = $Sun
+@onready var fill: DirectionalLight3D = $Fill
 
 var _skids: SkidMarks
+var _sky: SkyDressing
 
 static func planned_max_speed(time_s: float) -> float:
 	return minf(SPEED_CAP_MPS, INITIAL_MAX_SPEED_MPS + MAX_SPEED_RAMP * time_s)
@@ -76,6 +79,9 @@ func _ready() -> void:
 	player.max_speed_mps = max_speed_mps
 	road.setup(player.track_z())
 	street.follow(road.origins())
+	_sky = SkyDressing.new()
+	_sky.name = "SkyDressing"
+	add_child(_sky)
 	_apply_world(progress)
 	race_camera.snap_to(player.global_position)
 	speed_changed.connect(hud.show_speed)
@@ -241,6 +247,11 @@ func _emit_score_if_changed() -> void:
 	score_changed.emit(shown, score_keeper.multiplier)
 
 
+func _aim_celestial(pitch: float) -> void:
+	var toward_sky := Vector3(0.0, sin(pitch), cos(pitch)).normalized()
+	sun.basis = Basis.looking_at(-toward_sky, Vector3.UP)
+
+
 func _apply_tune(state: Progress) -> void:
 	initial_max_mps = INITIAL_MAX_SPEED_MPS + float(state.tope) * 3.0
 	speed_cap_mps = SPEED_CAP_MPS + float(state.tope) * 3.0
@@ -257,9 +268,25 @@ func _apply_world(state: Progress) -> void:
 	street.apply_place(str(place["id"]))
 	rain.set_active(str(state_weather["id"]) == "lluvia")
 	player.weather_grip = float(state_weather["grip"])
+	var night := bool(place.get("night", false))
 	var sky := Course.sky_color(state.races, state.races)
+	if night:
+		sky = (place["sky"] as Color).lerp(sky, 0.2)
+	if _sky != null:
+		_sky.set_night(night)
+	if night:
+		sun.light_color = Color(0.62, 0.74, 1.0)
+		sun.light_energy = 0.28
+		fill.light_energy = 0.16
+		_aim_celestial(0.22)
+	else:
+		sun.light_color = Color(1.0, 0.95, 0.78)
+		sun.light_energy = 2.2
+		fill.light_energy = 0.4
+		_aim_celestial(0.2)
 	var environment := world.environment.duplicate()
 	environment.background_color = sky
+	environment.ambient_light_energy = 0.2 if night else 0.48
 	if OS.has_feature("web"):
 		environment.glow_enabled = false
 		environment.ssao_enabled = false
