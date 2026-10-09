@@ -12,6 +12,7 @@ extends CanvasLayer
 @onready var _standing_label: Label = %StandingLabel
 @onready var _pause_label: Label = %PauseLabel
 @onready var _hint_label: Label = %HintLabel
+@onready var _track_map: TrackMap = %TrackMap
 
 
 func _ready() -> void:
@@ -48,6 +49,10 @@ func show_speed(speed_mps: float) -> void:
 
 func show_distance(distance_m: float) -> void:
 	_distance_label.text = format_distance(distance_m)
+
+
+func show_track(distance_m: float, lateral_x: float) -> void:
+	_track_map.set_run(distance_m, lateral_x)
 
 
 func show_score(score: int, multiplier: int) -> void:

@@ -28,7 +28,7 @@ func _ready() -> void:
 		_life.append(0.0)
 
 
-func follow_drift(drifting: bool, at: Vector3, delta: float) -> void:
+func follow_drift(drifting: bool, along: float, lateral: float, delta: float) -> void:
 	for index in _marks.size():
 		if _life[index] <= 0.0:
 			continue
@@ -46,7 +46,10 @@ func follow_drift(drifting: bool, at: Vector3, delta: float) -> void:
 		return
 	_wait = STAMP_GAP_S
 	var mark := _marks[_cursor]
-	mark.position = Vector3(at.x, 0.08, at.z - 1.1)
+	var framed := CoursePath.pose(along - 1.1, lateral)
+	var point: Vector3 = framed.position
+	mark.position = Vector3(point.x, 0.08, point.z)
+	mark.rotation.y = float(framed.yaw)
 	mark.visible = true
 	var paint := mark.material_override as StandardMaterial3D
 	paint.albedo_color = Color(0.12, 0.12, 0.13, 0.62)

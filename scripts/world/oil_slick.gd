@@ -5,6 +5,9 @@ const HALF_X := 1.6
 const HALF_Z := 3.5
 
 var active: bool = false
+var road_x: float = 0.0
+var road_z: float = 0.0
+var _road_live: bool = false
 
 
 func _ready() -> void:
@@ -26,17 +29,32 @@ func _ready() -> void:
 func activate(at: Vector3) -> void:
 	active = true
 	visible = true
-	global_position = at
+	road_x = at.x
+	road_z = at.z
+	_road_live = true
+	position.y = at.y
+	CoursePath.present(self, road_z, road_x)
 
 
 func deactivate() -> void:
 	active = false
 	visible = false
+	_road_live = false
+
+
+func along() -> float:
+	return road_z if _road_live else global_position.z
+
+
+func lateral() -> float:
+	return road_x if _road_live else global_position.x
 
 
 func overlaps(point: Vector3, body_half: Vector2) -> bool:
 	if not active:
 		return false
-	var separated_x := absf(point.x - global_position.x) >= HALF_X + body_half.x
-	var separated_z := absf(point.z - global_position.z) >= HALF_Z + body_half.y
+	var center_x := road_x if _road_live else global_position.x
+	var center_z := road_z if _road_live else global_position.z
+	var separated_x := absf(point.x - center_x) >= HALF_X + body_half.x
+	var separated_z := absf(point.z - center_z) >= HALF_Z + body_half.y
 	return not separated_x and not separated_z

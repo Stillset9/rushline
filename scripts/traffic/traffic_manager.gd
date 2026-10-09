@@ -117,11 +117,11 @@ func tick(delta: float, player_z: float) -> void:
 			vehicle.lane_timer += delta
 			if vehicle.lane_timer >= vehicle.profile.lane_change_interval:
 				vehicle.lane_timer = 0.0
-				var next := choose_lane_change(vehicle.lane, vehicle.global_position.z, _occupants(vehicle))
+				var next := choose_lane_change(vehicle.lane, vehicle.track_z(), _occupants(vehicle))
 				if next != -1:
 					vehicle.lane = next
 					vehicle.lane_x = lane_center(next)
-		var ahead := vehicle.global_position.z - player_z
+		var ahead := vehicle.track_z() - player_z
 		if ahead < -DESPAWN_BEHIND or ahead > DESPAWN_AHEAD:
 			vehicle.deactivate()
 	_spawn_timer += delta
@@ -138,7 +138,7 @@ func _try_spawn(player_z: float) -> void:
 	var occupants: Array = []
 	for other in _pool:
 		if other.active:
-			occupants.append({"lane": other.lane, "z": other.global_position.z})
+			occupants.append({"lane": other.lane, "z": other.track_z()})
 	var lane := choose_lane(spawn_z, occupants)
 	if lane == -1:
 		return
@@ -168,5 +168,5 @@ func _occupants(except: TrafficVehicle) -> Array:
 	var occupants: Array = []
 	for other in _pool:
 		if other.active and other != except:
-			occupants.append({"lane": other.lane, "z": other.global_position.z})
+			occupants.append({"lane": other.lane, "z": other.track_z()})
 	return occupants

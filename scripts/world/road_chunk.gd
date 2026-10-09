@@ -8,7 +8,8 @@ const ASPHALT_TEX: Texture2D = preload("res://assets/world/asphalt_diff.jpg")
 
 
 func _ready() -> void:
-	_add_box(Vector3(0.0, 0.0, LENGTH * 0.5), Vector3(14.0, 0.1, LENGTH), ASPHALT)
+	# El asfalto se solapa con el tramo siguiente para que la curva no abra una grieta.
+	_add_box(Vector3(0.0, 0.0, LENGTH * 0.5), Vector3(14.0, 0.1, LENGTH + 8.0), ASPHALT)
 	# La pintura debe quedar sobre el asfalto; si no, queda oculta bajo la losa.
 	_add_box(Vector3(-6.0, 0.06, LENGTH * 0.5), Vector3(0.12, 0.02, LENGTH), PAINT)
 	_add_box(Vector3(6.0, 0.06, LENGTH * 0.5), Vector3(0.12, 0.02, LENGTH), PAINT)

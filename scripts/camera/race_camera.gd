@@ -50,6 +50,23 @@ func kick() -> void:
 	shake_s = SHAKE_S
 
 
+func follow(delta: float, along: float, lateral: float) -> void:
+	if along + LOOK_AHEAD < CoursePath.STRAIGHT_M:
+		tick(delta, Vector3(lateral, 0.0, along))
+		return
+	var behind := CoursePath.pose(along - BEHIND, lateral)
+	var ahead := CoursePath.pose(along + LOOK_AHEAD, lateral)
+	var behind_point: Vector3 = behind.position
+	var ahead_point: Vector3 = ahead.position
+	global_position = Vector3(behind_point.x, HEIGHT, behind_point.z)
+	if shake_s > 0.0:
+		shake_s = maxf(0.0, shake_s - delta)
+		var fade := shake_s / SHAKE_S
+		var wobble := sin(shake_s * 95.0) * 0.2 * fade
+		global_position += Vector3(wobble, absf(wobble) * 0.4, 0.0)
+	look_at(Vector3(ahead_point.x, LOOK_HEIGHT, ahead_point.z), Vector3.UP)
+
+
 func tick(delta: float, player_position: Vector3) -> void:
 	var target := target_position(player_position)
 	var smoothed := smooth_position(global_position, target, delta)

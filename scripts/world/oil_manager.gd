@@ -23,7 +23,7 @@ func tick(delta: float, player_z: float) -> void:
 	for slick in _pool:
 		if not slick.active:
 			continue
-		var ahead := slick.global_position.z - player_z
+		var ahead := slick.along() - player_z
 		if ahead < -DESPAWN_BEHIND or ahead > DESPAWN_AHEAD:
 			slick.deactivate()
 	_spawn_timer += delta
@@ -48,8 +48,8 @@ func _try_spawn(player_z: float) -> void:
 	var occupants: Array = []
 	for other in _pool:
 		if other.active:
-			var lane := _lane_of(other.global_position.x)
-			occupants.append({"lane": lane, "z": other.global_position.z})
+			var lane := _lane_of(other.lateral())
+			occupants.append({"lane": lane, "z": other.along()})
 	var lane := TrafficManager.choose_lane(spawn_z, occupants)
 	if lane == -1:
 		return

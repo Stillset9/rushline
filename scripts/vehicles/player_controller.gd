@@ -33,6 +33,9 @@ var brake_input: bool = false
 var impact_s: float = 0.0
 var boosting: bool = false
 var drifting: bool = false
+var road_x: float = 0.0
+var road_z: float = 0.0
+var _road_live: bool = false
 
 
 static func step_longitudinal(speed: float, max_speed: float, braking: bool, delta: float, accel: float = ACCEL_MPS2) -> float:
@@ -58,7 +61,19 @@ func _ready() -> void:
 	VehicleVisual.build(self)
 
 
+func track_x() -> float:
+	return road_x if _road_live else position.x
+
+
+func track_z() -> float:
+	return road_z if _road_live else position.z
+
+
 func tick(delta: float) -> void:
+	if not _road_live or CoursePath.on_straight(road_z):
+		road_x = position.x
+		road_z = position.z
+		_road_live = true
 	var braking := _is_braking()
 	var steering := _steer_value()
 	boosting = _nitro_held() and nitro_tank > 0.0 and not braking
@@ -78,10 +93,11 @@ func tick(delta: float) -> void:
 		grip *= DRIFT_GRIP
 		speed_mps = maxf(MIN_SPEED_MPS, speed_mps - DRIFT_BLEED * delta)
 	lateral_speed_mps = step_lateral(lateral_speed_mps, steering, delta, grip)
-	var x_step := step_x(position.x, lateral_speed_mps, delta)
+	var x_step := step_x(road_x, lateral_speed_mps, delta)
 	lateral_speed_mps = x_step.y
-	position.x = x_step.x
-	position.z += speed_mps * delta
+	road_x = x_step.x
+	road_z += speed_mps * delta
+	CoursePath.present(self, road_z, road_x)
 	VehicleVisual.spin_wheels(self, speed_mps, delta, steering)
 	VehicleVisual.show_boost(self, boosting)
 	VehicleVisual.show_brake(self, braking)

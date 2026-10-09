@@ -71,6 +71,16 @@ func run(tree: SceneTree) -> Array:
 		failed.append("multiplier label")
 	hud.show_distance(60.41)
 	hud.show_score(750, 3)
+	var track: TrackMap = hud.get_node("%TrackMap")
+	if track == null:
+		failed.append("track missing")
+	else:
+		hud.show_track(500.0, 0.0)
+		if track.remain_text != "Faltan 1500 m":
+			failed.append("remain %s" % track.remain_text)
+		hud.show_track(2000.0, -4.0)
+		if track.remain_text != "Meta":
+			failed.append("meta %s" % track.remain_text)
 	if distance_label.text != "60 m" or score_label.text != "750 pts" or multiplier_label.text != "×3":
 		failed.append("shown %s %s %s" % [distance_label.text, score_label.text, multiplier_label.text])
 	hud.queue_free()

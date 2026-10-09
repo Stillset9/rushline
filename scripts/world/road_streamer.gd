@@ -8,6 +8,7 @@ const RECYCLE_BEHIND := 20.0
 const CHUNK_SCENE := preload("res://scenes/world/road_chunk.tscn")
 
 var _chunks: Array[Node3D] = []
+var _origins: Array[float] = []
 
 
 func _ready() -> void:
@@ -55,10 +56,7 @@ func tick(player_z: float) -> void:
 
 
 func origins() -> Array[float]:
-	var values: Array[float] = []
-	for chunk in _chunks:
-		values.append(chunk.position.z)
-	return values
+	return _origins.duplicate()
 
 
 func apply_palette(asphalt: Color, paint: Color) -> void:
@@ -68,5 +66,8 @@ func apply_palette(asphalt: Color, paint: Color) -> void:
 
 
 func _apply(chunk_origins: Array) -> void:
+	_origins.clear()
 	for i in _chunks.size():
-		_chunks[i].position = Vector3(0.0, 0.0, float(chunk_origins[i]))
+		var origin := float(chunk_origins[i])
+		_origins.append(origin)
+		CoursePath.place_span(_chunks[i], origin, CHUNK_LENGTH)

@@ -1,6 +1,8 @@
 class_name Course
 extends RefCounted
 
+const STAGE_M := 2000.0
+
 const THEMES: Array[Dictionary] = [
 	{
 		"id": "ciudad",

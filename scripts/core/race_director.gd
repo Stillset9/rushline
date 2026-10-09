@@ -74,7 +74,7 @@ func _ready() -> void:
 	progress = Progress.load_state()
 	_apply_tune(progress)
 	player.max_speed_mps = max_speed_mps
-	road.setup(player.global_position.z)
+	road.setup(player.track_z())
 	street.follow(road.origins())
 	_apply_world(progress)
 	race_camera.snap_to(player.global_position)
@@ -87,6 +87,7 @@ func _ready() -> void:
 	_emit_speed_if_changed(player.speed_mps)
 	_emit_distance_if_changed()
 	_emit_score_if_changed()
+	hud.show_track(distance_m, player.track_x())
 	hud.show_nitro(player.nitro_tank)
 	_skids = SkidMarks.new()
 	_skids.name = "SkidMarks"
@@ -140,6 +141,22 @@ func return_to_title() -> void:
 		get_tree().change_scene_to_file(TITLE_SCENE)
 
 
+func close_if_done() -> void:
+	if not finished and distance_m >= Course.STAGE_M:
+		_end_race()
+
+
+func _end_race() -> void:
+	if finished:
+		return
+	finished = true
+	var shown := displayed_score(score_keeper.score)
+	var record := progress.note_finish(shown)
+	race_finished.emit(shown)
+	hud.show_hint("")
+	hud.show_standing(progress.best_score, progress.money, record)
+
+
 func request_restart() -> void:
 	if not finished or restarted:
 		return
@@ -154,12 +171,12 @@ func simulate(delta: float) -> void:
 	begin_frame(delta)
 	player.max_speed_mps = max_speed_mps
 	player.tick(delta)
-	traffic.tick(delta, player.global_position.z)
-	oil.tick(delta, player.global_position.z)
-	if oil.touching(player.global_position):
+	traffic.tick(delta, player.track_z())
+	oil.tick(delta, player.track_z())
+	if oil.touching(Vector3(player.track_x(), 0.0, player.track_z())):
 		player.slip_s = OilManager.SLIP_S
 	var travel_speed := player.speed_mps
-	var hits := Contact.collect_new_hits(player.global_position, traffic.vehicles())
+	var hits := Contact.collect_new_hits(Vector3(player.track_x(), 0.0, player.track_z()), traffic.vehicles())
 	var multiplier_before := score_keeper.multiplier
 	if hits > 0:
 		player.speed_mps = Contact.speed_after_hits(travel_speed, hits)
@@ -178,18 +195,14 @@ func simulate(delta: float) -> void:
 	_emit_speed_if_changed(player.speed_mps)
 	_emit_score_if_changed()
 	hud.show_nitro(player.nitro_tank)
+	hud.show_track(distance_m, player.track_x())
 	crashes += hits
-	if crashes >= HITS_TO_END:
-		finished = true
-		var shown := displayed_score(score_keeper.score)
-		var record := progress.note_finish(shown)
-		race_finished.emit(shown)
-		hud.show_hint("")
-		hud.show_standing(progress.best_score, progress.money, record)
-	road.tick(player.global_position.z)
+	if crashes >= HITS_TO_END or distance_m >= Course.STAGE_M:
+		_end_race()
+	road.tick(player.track_z())
 	street.follow(road.origins())
-	_skids.follow_drift(player.drifting, player.global_position, delta)
-	race_camera.tick(delta, player.global_position)
+	_skids.follow_drift(player.drifting, player.track_z(), player.track_x(), delta)
+	race_camera.follow(delta, player.track_z(), player.track_x())
 	race_camera.apply_drive(player.speed_mps, player.boosting)
 
 

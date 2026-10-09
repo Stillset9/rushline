@@ -43,9 +43,12 @@ const GROUND := {
 }
 
 var _blocks: Array[Node3D] = []
+var _fill: MeshInstance3D
 
 
 func _ready() -> void:
+	_fill = _slab(self, Vector3(0.0, -0.2, 0.0), Vector3(900.0, 0.2, 900.0), GROUND["ciudad"])
+	_fill.name = "Fill"
 	for index in RoadStreamer.CHUNK_COUNT:
 		var block := _make_block(index)
 		add_child(block)
@@ -54,7 +57,12 @@ func _ready() -> void:
 
 func follow(chunk_origins: Array) -> void:
 	for index in _blocks.size():
-		_blocks[index].position = Vector3(0.0, 0.0, float(chunk_origins[index]))
+		CoursePath.place_span(_blocks[index], float(chunk_origins[index]), RoadStreamer.CHUNK_LENGTH)
+	if chunk_origins.is_empty() or _fill == null:
+		return
+	var mid := CoursePath.pose(float(chunk_origins[chunk_origins.size() / 2]) + RoadStreamer.CHUNK_LENGTH * 0.5, 0.0)
+	var point: Vector3 = mid.position
+	_fill.position = Vector3(point.x, -0.2, point.z)
 
 
 func apply_place(theme_id: String) -> void:
@@ -68,14 +76,16 @@ func apply_place(theme_id: String) -> void:
 		block.get_node("Snow").visible = theme_id == "nieve"
 		var ground := block.get_node("Ground") as MeshInstance3D
 		(ground.material_override as StandardMaterial3D).albedo_color = ground_color
+	if _fill != null:
+		(_fill.material_override as StandardMaterial3D).albedo_color = ground_color
 
 
 func _make_block(index: int) -> Node3D:
 	var block := Node3D.new()
-	var ground := _slab(block, Vector3(0.0, -0.08, 20.0), Vector3(80.0, 0.16, 40.0), GROUND["ciudad"])
+	var ground := _slab(block, Vector3(0.0, -0.08, 20.0), Vector3(80.0, 0.16, 56.0), GROUND["ciudad"])
 	ground.name = "Ground"
-	_slab(block, Vector3(-8.4, 0.1, 20.0), Vector3(2.6, 0.1, 40.0), Color(0.78, 0.78, 0.76), SIDEWALK_TEX)
-	_slab(block, Vector3(8.4, 0.1, 20.0), Vector3(2.6, 0.1, 40.0), Color(0.78, 0.78, 0.76), SIDEWALK_TEX)
+	_slab(block, Vector3(-8.4, 0.1, 20.0), Vector3(2.6, 0.1, 48.0), Color(0.78, 0.78, 0.76), SIDEWALK_TEX)
+	_slab(block, Vector3(8.4, 0.1, 20.0), Vector3(2.6, 0.1, 48.0), Color(0.78, 0.78, 0.76), SIDEWALK_TEX)
 	_stripe(block, -7.05)
 	_stripe(block, 7.05)
 	var city := _group(block, "City")
@@ -151,7 +161,7 @@ func _group(parent: Node3D, node_name: String) -> Node3D:
 
 
 func _stripe(parent: Node3D, x: float) -> void:
-	var mesh_instance := _slab(parent, Vector3(x, 0.08, 20.0), Vector3(0.14, 0.025, 40.0), Color(0.74, 0.96, 1.0))
+	var mesh_instance := _slab(parent, Vector3(x, 0.08, 20.0), Vector3(0.14, 0.025, 48.0), Color(0.74, 0.96, 1.0))
 	var material := mesh_instance.material_override as StandardMaterial3D
 	material.emission_enabled = true
 	material.emission = Color(0.45, 0.82, 1.0)

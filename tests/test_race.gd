@@ -105,6 +105,13 @@ func _hit_episode(tree: SceneTree) -> Array:
 		failed.append("second speed %s" % player.speed_mps)
 	if race.finished:
 		failed.append("ended too soon")
+	race.distance_m = Course.STAGE_M
+	race.close_if_done()
+	if not race.finished:
+		failed.append("stage open")
+	var stage_label: Label = race.get_node("SpeedHud/FinishLabel")
+	if not stage_label.visible:
+		failed.append("stage finish")
 	race.queue_free()
 	return failed
 
