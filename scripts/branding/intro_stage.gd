@@ -264,8 +264,8 @@ func _extrude(glyph: String) -> Node3D:
 		plate.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		plate.position = Vector3(0.0, 0.0, -depth * 0.22)
 		plate.billboard = BaseMaterial3D.BILLBOARD_DISABLED
-		plate.shaded = true
-		plate.double_sided = false
+		plate.shaded = false
+		plate.double_sided = true
 		plate.alpha_cut = Label3D.ALPHA_CUT_DISCARD
 		plate.alpha_scissor_threshold = 0.4
 		plate.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS

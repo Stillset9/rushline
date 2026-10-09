@@ -22,6 +22,9 @@ var _skipping := false
 var _skip_at := 0.0
 var _audio_started := false
 var _await_gesture := false
+var _pcm := PackedByteArray()
+var _pcm_at := 0
+var _pcm_count := 0
 
 @onready var _stage = %Stage
 @onready var _name_label: Label = %NameLabel
@@ -138,11 +141,8 @@ func _ready() -> void:
 		_name_label.add_theme_font_override("font", face)
 		_presenta.add_theme_font_override("font", face)
 	_apply(presentation(0.0))
-	if not auto_change_scene:
-		return
-	_audio = AudioStreamPlayer.new()
-	_audio.name = "HJIntroSting"
-	get_tree().root.add_child.call_deferred(_audio)
+	_pcm_count = int((HOLD_END + FADE_DURATION) * MIX_RATE)
+	_pcm.resize(_pcm_count * 4)
 
 
 func request_skip() -> void:
@@ -169,22 +169,11 @@ func advance(delta: float) -> void:
 
 
 func _process(delta: float) -> void:
-	var booting := time_s <= 0.0 and not _skipping
-	_ensure_audio()
+	_fill_audio()
 	_resume_web_audio()
 	if Input.is_action_just_pressed("skip_intro"):
 		request_skip()
-	if _skipping:
-		advance(delta)
-		return
-	if booting:
-		return
-	var step := minf(delta, 0.05)
-	if _audio != null and is_instance_valid(_audio) and _audio.playing:
-		var ahead := _audio.get_playback_position() - time_s
-		if ahead > step:
-			step = minf(ahead, 0.05)
-	advance(step)
+	advance(minf(delta, 0.05))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -205,21 +194,42 @@ func _resume_web_audio() -> void:
 	_await_gesture = false
 
 
-func _ensure_audio() -> void:
-	if _audio_started or _audio == null or not is_instance_valid(_audio):
+func _fill_audio() -> void:
+	if _audio_started:
 		return
-	if not _audio.is_inside_tree() or _audio.get_parent() != get_tree().root:
+	var end := mini(_pcm_at + 6000, _pcm_count)
+	while _pcm_at < end:
+		var pcm := int(round(sample(float(_pcm_at) / MIX_RATE) * 32767.0))
+		var offset := _pcm_at * 4
+		_pcm.encode_s16(offset, pcm)
+		_pcm.encode_s16(offset + 2, pcm)
+		_pcm_at += 1
+	if _pcm_at < _pcm_count:
 		return
+	if _audio == null or not is_instance_valid(_audio):
+		_audio_started = true
+		return
+	var wav := AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_16_BITS
+	wav.mix_rate = int(MIX_RATE)
+	wav.stereo = true
+	wav.data = _pcm
+	_audio.stream = wav
+	GameSettings.load_state()
+	_audio.volume_db = GameSettings.music_db()
 	_audio_started = true
-	_setup_audio()
 	_await_gesture = OS.has_feature("web")
+	if not _await_gesture:
+		_audio.play()
 
 
 func _apply(state: Dictionary) -> void:
 	_stage.apply(state)
 	if _dust.has_method("set_field"):
 		_dust.set_field(float(state["particles"]) * float(state["fade"]), float(state["time"]))
-	var fallback := 0.0 if _stage.logo_built else float(state["formed"])
+	var formed := float(state["formed"])
+	var show_flat: bool = (not bool(_stage.logo_built)) or OS.has_feature("web")
+	var fallback := formed if show_flat else 0.0
 	_name_label.modulate.a = fallback
 	_rule_fallback.modulate.a = fallback * 0.85
 	_rule_fallback.scale.x = lerpf(0.2, 1.0, float(state["formed"]))
@@ -244,24 +254,3 @@ func _leave() -> void:
 func _exit_tree() -> void:
 	if _audio != null and is_instance_valid(_audio) and _audio.playing:
 		_audio.stop()
-
-
-func _setup_audio() -> void:
-	var seconds := HOLD_END + FADE_DURATION
-	var count := int(seconds * MIX_RATE)
-	var data := PackedByteArray()
-	data.resize(count * 4)
-	for i in count:
-		var pcm := int(round(sample(float(i) / MIX_RATE) * 32767.0))
-		var offset := i * 4
-		data.encode_s16(offset, pcm)
-		data.encode_s16(offset + 2, pcm)
-	var wav := AudioStreamWAV.new()
-	wav.format = AudioStreamWAV.FORMAT_16_BITS
-	wav.mix_rate = int(MIX_RATE)
-	wav.stereo = true
-	wav.data = data
-	_audio.stream = wav
-	GameSettings.load_state()
-	_audio.volume_db = GameSettings.music_db()
-	_audio.play()

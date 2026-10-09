@@ -53,6 +53,10 @@ func _scene(tree: SceneTree) -> Array:
 	intro.set_process(false)
 	if intro.anchor_right != 1.0 or intro.anchor_bottom != 1.0:
 		failed.append("anchors")
+	intro._process(0.05)
+	if intro.time_s <= 0.0:
+		failed.append("clock %s" % intro.time_s)
+	intro.time_s = 0.0
 	intro.advance(4.6)
 	var label: Label = intro.get_node("%NameLabel")
 	if label.text != "HJGAMES":
