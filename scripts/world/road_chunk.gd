@@ -26,7 +26,11 @@ func _add_box(at: Vector3, size: Vector3, color: Color) -> void:
 	mesh_instance.position = at
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
-	material.roughness = 0.96 if size.x > 1.0 else 0.55
+	material.roughness = 0.96 if size.x > 1.0 else 0.4
+	if size.x <= 1.0:
+		material.emission_enabled = true
+		material.emission = color
+		material.emission_energy_multiplier = 0.55
 	if size.x > 1.0:
 		material.albedo_texture = _asphalt_grain()
 		material.uv1_triplanar = true
@@ -60,4 +64,9 @@ func apply_palette(asphalt: Color, paint: Color) -> void:
 		var material := mesh_instance.material_override as StandardMaterial3D
 		if box == null or material == null:
 			continue
-		material.albedo_color = asphalt if box.size.x > 1.0 else paint
+		var wide := box.size.x > 1.0
+		material.albedo_color = asphalt if wide else paint
+		if not wide:
+			material.emission_enabled = true
+			material.emission = paint
+			material.emission_energy_multiplier = 0.55

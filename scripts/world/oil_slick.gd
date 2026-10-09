@@ -14,7 +14,10 @@ func _ready() -> void:
 	mesh_instance.mesh = mesh
 	var material := StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.albedo_color = Color(0.03, 0.035, 0.04, 0.92)
+	material.albedo_color = Color(0.05, 0.12, 0.1, 0.82)
+	material.emission_enabled = true
+	material.emission = Color(0.05, 0.16, 0.12)
+	material.emission_energy_multiplier = 0.35
 	mesh_instance.material_override = material
 	add_child(mesh_instance)
 	visible = false

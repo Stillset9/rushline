@@ -16,6 +16,10 @@ func run(tree: SceneTree) -> Array:
 		failed.append("fov mid")
 	if not is_equal_approx(camera_script.fov_for_speed(100.0), 72.0):
 		failed.append("fov high")
+	if not is_equal_approx(camera_script.fov_for_drive(35.0, false), 66.0):
+		failed.append("fov drive")
+	if camera_script.fov_for_drive(35.0, true) <= 66.0:
+		failed.append("fov nitro")
 	var stayed: Vector3 = camera_script.smooth_position(Vector3(1.0, 2.0, 3.0), Vector3(9.0, 9.0, 9.0), 0.0)
 	if not stayed.is_equal_approx(Vector3(1.0, 2.0, 3.0)):
 		failed.append("smooth zero")
@@ -43,6 +47,9 @@ func run(tree: SceneTree) -> Array:
 		failed.append("format 30")
 	var hud: CanvasLayer = load("res://scenes/ui/speed_hud.tscn").instantiate()
 	tree.root.add_child(hud)
+	var card: Control = hud.get_node("ControlCard")
+	if card == null or ControlCard.USES.size() != ControlCard.KEYS.size() or not ControlCard.USES.has("nitro"):
+		failed.append("controls")
 	hud.show_speed(30.0)
 	var label := hud.get_node("%SpeedLabel") as Label
 	if label == null or label.text != "108 km/h":

@@ -36,8 +36,9 @@ static func build(parent: Node3D, model: PackedScene = null, with_boost: bool = 
 	else:
 		root.name = "Model"
 	if with_boost:
-		_exhaust(parent, "ExhaustL", Vector3(-0.42, 0.42, -2.15))
-		_exhaust(parent, "ExhaustR", Vector3(0.42, 0.42, -2.15))
+		_flame(parent, "L", -0.42)
+		_flame(parent, "R", 0.42)
+		_livery(parent)
 		_impact(parent)
 	return body
 
@@ -57,18 +58,24 @@ static func paint(body: MeshInstance3D, color: Color) -> void:
 			mesh_instance.material_override = material
 
 
-static func spin_wheels(vehicle: Node3D, speed_mps: float, delta: float) -> void:
+static func spin_wheels(vehicle: Node3D, speed_mps: float, delta: float, steer: float = 0.0) -> void:
 	var angle := speed_mps / WHEEL_RADIUS * delta
+	var yaw := clampf(steer, -1.0, 1.0) * 0.38
 	for child in vehicle.get_children():
-		if str(child.name).begins_with("Wheel"):
-			(child as Node3D).rotate_x(angle)
+		var node := child as Node3D
+		if node == null or not str(node.name).begins_with("Wheel"):
+			continue
+		node.rotate_x(angle)
+		if str(node.name).begins_with("WheelF"):
+			var euler := node.rotation
+			euler.y = yaw
+			node.rotation = euler
 
 
 static func show_boost(vehicle: Node3D, enabled: bool) -> void:
-	for node_name in ["ExhaustL", "ExhaustR"]:
-		var exhaust := vehicle.get_node_or_null(node_name) as Node3D
-		if exhaust != null:
-			exhaust.visible = enabled
+	for child in vehicle.get_children():
+		if str(child.name).begins_with("Exhaust"):
+			(child as Node3D).visible = enabled
 
 
 static func _reparent(node: Node3D, parent: Node3D) -> void:
@@ -103,20 +110,43 @@ static func _to_root(root: Node, node: Node) -> Transform3D:
 	return xform
 
 
-static func _exhaust(parent: Node3D, node_name: String, at: Vector3) -> void:
+static func _flame(parent: Node3D, side: String, x: float) -> void:
+	_exhaust(parent, "Exhaust" + side, Vector3(x, 0.38, -2.85), Vector3(0.2, 0.2, 1.7), Color(1.0, 0.42, 0.08, 0.75), Color(1.0, 0.28, 0.04), 2.4)
+	_exhaust(parent, "ExhaustCore" + side, Vector3(x, 0.4, -3.15), Vector3(0.07, 0.07, 2.15), Color(0.85, 0.96, 1.0, 0.9), Color(0.75, 0.95, 1.0), 4.0)
+
+
+static func _livery(parent: Node3D) -> void:
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "Livery"
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(0.16, 0.03, 2.2)
+	mesh_instance.mesh = mesh
+	mesh_instance.position = Vector3(0.0, 1.18, 0.15)
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(0.74, 0.96, 1.0, 1.0)
+	material.emission_enabled = true
+	material.emission = Color(0.45, 0.85, 1.0)
+	material.emission_energy_multiplier = 1.4
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh_instance.material_override = material
+	parent.add_child(mesh_instance)
+
+
+static func _exhaust(parent: Node3D, node_name: String, at: Vector3, size: Vector3, albedo: Color, emission: Color, energy: float) -> void:
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.name = node_name
 	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.16, 0.16, 0.85)
+	mesh.size = size
 	mesh_instance.mesh = mesh
 	mesh_instance.position = at
 	mesh_instance.visible = false
 	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(1.0, 0.42, 0.08, 0.9)
+	material.albedo_color = albedo
 	material.emission_enabled = true
-	material.emission = Color(1.0, 0.38, 0.05)
-	material.emission_energy_multiplier = 3.0
+	material.emission = emission
+	material.emission_energy_multiplier = energy
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh_instance.material_override = material
 	parent.add_child(mesh_instance)
 
@@ -125,17 +155,17 @@ static func _impact(parent: Node3D) -> void:
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.name = "Impact"
 	mesh_instance.visible = false
-	var mesh := SphereMesh.new()
-	mesh.radius = 1.15
-	mesh.height = 2.3
+	var mesh := TorusMesh.new()
+	mesh.inner_radius = 0.85
+	mesh.outer_radius = 1.25
 	mesh_instance.mesh = mesh
-	mesh_instance.position = Vector3(0.0, 0.7, 0.0)
+	mesh_instance.position = Vector3(0.0, 0.55, 0.2)
 	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(1.0, 0.45, 0.15, 0.35)
+	material.albedo_color = Color(1.0, 0.55, 0.16, 0.55)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.emission_enabled = true
-	material.emission = Color(1.0, 0.35, 0.08)
-	material.emission_energy_multiplier = 2.0
+	material.emission = Color(1.0, 0.42, 0.08)
+	material.emission_energy_multiplier = 2.2
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh_instance.material_override = material
 	parent.add_child(mesh_instance)

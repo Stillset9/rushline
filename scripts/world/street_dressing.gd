@@ -19,13 +19,13 @@ const BUILDINGS: Array[PackedScene] = [
 ]
 
 const GROUND := {
-	"ciudad": Color(0.14, 0.15, 0.13),
-	"costa": Color(0.74, 0.66, 0.42),
-	"desierto": Color(0.78, 0.58, 0.3),
-	"bosque": Color(0.18, 0.3, 0.14),
-	"nieve": Color(0.86, 0.89, 0.92),
-	"atardecer": Color(0.2, 0.12, 0.1),
-	"industrial": Color(0.15, 0.15, 0.13),
+	"ciudad": Color(0.09, 0.1, 0.09),
+	"costa": Color(0.62, 0.52, 0.32),
+	"desierto": Color(0.72, 0.5, 0.24),
+	"bosque": Color(0.1, 0.18, 0.08),
+	"nieve": Color(0.78, 0.82, 0.86),
+	"atardecer": Color(0.12, 0.07, 0.06),
+	"industrial": Color(0.1, 0.1, 0.09),
 }
 
 var _blocks: Array[Node3D] = []
@@ -60,8 +60,10 @@ func _make_block(index: int) -> Node3D:
 	var block := Node3D.new()
 	var ground := _slab(block, Vector3(0.0, -0.08, 20.0), Vector3(80.0, 0.16, 40.0), GROUND["ciudad"])
 	ground.name = "Ground"
-	_slab(block, Vector3(-8.4, 0.1, 20.0), Vector3(2.6, 0.1, 40.0), Color(0.62, 0.63, 0.61))
-	_slab(block, Vector3(8.4, 0.1, 20.0), Vector3(2.6, 0.1, 40.0), Color(0.62, 0.63, 0.61))
+	_slab(block, Vector3(-8.4, 0.1, 20.0), Vector3(2.6, 0.1, 40.0), Color(0.22, 0.24, 0.26))
+	_slab(block, Vector3(8.4, 0.1, 20.0), Vector3(2.6, 0.1, 40.0), Color(0.22, 0.24, 0.26))
+	_stripe(block, -7.05)
+	_stripe(block, 7.05)
 	var city := _group(block, "City")
 	if index % 2 == 0:
 		_fit(city, CROSSING, Vector3(0.0, 0.16, 18.0), Vector3(12.0, 0.02, 3.0))
@@ -107,6 +109,15 @@ func _group(parent: Node3D, node_name: String) -> Node3D:
 	group.name = node_name
 	parent.add_child(group)
 	return group
+
+
+func _stripe(parent: Node3D, x: float) -> void:
+	var mesh_instance := _slab(parent, Vector3(x, 0.08, 20.0), Vector3(0.14, 0.025, 40.0), Color(0.74, 0.96, 1.0))
+	var material := mesh_instance.material_override as StandardMaterial3D
+	material.emission_enabled = true
+	material.emission = Color(0.45, 0.82, 1.0)
+	material.emission_energy_multiplier = 0.8
+	material.roughness = 0.35
 
 
 func _slab(parent: Node3D, at: Vector3, size: Vector3, color: Color) -> MeshInstance3D:

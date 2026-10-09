@@ -42,6 +42,8 @@ var _shown_multiplier: int = 0
 @onready var hud: SpeedHud = $SpeedHud
 @onready var world: WorldEnvironment = $WorldEnvironment
 
+var _skids: SkidMarks
+
 static func planned_max_speed(time_s: float) -> float:
 	return minf(SPEED_CAP_MPS, INITIAL_MAX_SPEED_MPS + MAX_SPEED_RAMP * time_s)
 
@@ -83,6 +85,9 @@ func _ready() -> void:
 	_emit_distance_if_changed()
 	_emit_score_if_changed()
 	hud.show_nitro(player.nitro_tank)
+	_skids = SkidMarks.new()
+	_skids.name = "SkidMarks"
+	add_child(_skids)
 	if progress.races == 0:
 		hint_s = 8.0
 		hud.show_hint("A y D doblan · S frena · Shift nitro")
@@ -138,6 +143,7 @@ func simulate(delta: float) -> void:
 		score_keeper.add_hit_distance(travel_speed * delta)
 		race_audio.play_hit()
 		player.show_impact()
+		race_camera.kick()
 	else:
 		score_keeper.add_clean_distance(travel_speed * delta)
 		if score_keeper.multiplier > multiplier_before:
@@ -158,7 +164,9 @@ func simulate(delta: float) -> void:
 		hud.show_standing(progress.best_score, progress.money, record)
 	road.tick(player.global_position.z)
 	street.follow(road.origins())
+	_skids.follow_drift(player.drifting, player.global_position, delta)
 	race_camera.tick(delta, player.global_position)
+	race_camera.apply_drive(player.speed_mps, player.boosting)
 
 
 func _commit_motion(speed_mps: float, delta: float) -> void:
