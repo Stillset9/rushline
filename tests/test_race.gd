@@ -23,6 +23,16 @@ func run(tree: SceneTree) -> Array:
 	race._process(1.0)
 	if not is_equal_approx(player.position.z, paused_z):
 		failed.append("pause moved")
+	race.set_paused(true)
+	var pause_label: Label = race.get_node("SpeedHud/PauseLabel")
+	if not pause_label.visible or not pause_label.text.contains("Inicio"):
+		failed.append("pause menu %s" % pause_label.text)
+	race.restart_scene = false
+	race.pause_row = 1
+	race.confirm_pause()
+	race.restart_scene = true
+	if not race.returned_home:
+		failed.append("home")
 	race.paused = false
 	if race.score_keeper.multiplier != 1:
 		failed.append("clean multiplier %s" % race.score_keeper.multiplier)

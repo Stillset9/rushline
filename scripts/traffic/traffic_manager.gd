@@ -18,10 +18,10 @@ const SCALES: Array[float] = [0.95, 1.0, 1.05, 0.97]
 
 const VEHICLE_SCENE := preload("res://scenes/vehicles/traffic_vehicle.tscn")
 const MODELS: Array[PackedScene] = [
-	preload("res://assets/kenney/cars/sedan.glb"),
-	preload("res://assets/kenney/cars/hatchback-sports.glb"),
-	preload("res://assets/kenney/cars/van.glb"),
-	preload("res://assets/kenney/cars/taxi.glb"),
+	preload("res://assets/vehicles/sedan.glb"),
+	preload("res://assets/vehicles/hatchback.glb"),
+	preload("res://assets/vehicles/taxi.glb"),
+	preload("res://assets/vehicles/race-car.glb"),
 ]
 const DEFAULT_PROFILE: AiProfile = preload("res://traffic/profiles/normal.tres")
 const PROFILES: Array[AiProfile] = [

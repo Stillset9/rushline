@@ -84,6 +84,7 @@ func tick(delta: float) -> void:
 	position.z += speed_mps * delta
 	VehicleVisual.spin_wheels(self, speed_mps, delta, steering)
 	VehicleVisual.show_boost(self, boosting)
+	VehicleVisual.show_brake(self, braking)
 	if impact_s > 0.0:
 		impact_s = maxf(0.0, impact_s - delta)
 		var impact := get_node_or_null("Impact") as Node3D

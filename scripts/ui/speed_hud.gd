@@ -69,8 +69,14 @@ func show_course(label: String) -> void:
 	_course_label.text = label
 
 
-func show_pause(active: bool) -> void:
+func show_pause(active: bool, row: int = 0) -> void:
 	_pause_label.visible = active
+	if not active:
+		return
+	_pause_label.add_theme_font_size_override("font_size", 40)
+	var follow := "> Seguir" if row == 0 else "  Seguir"
+	var home := "> Inicio" if row == 1 else "  Inicio"
+	_pause_label.text = "Pausa\n\n%s\n%s\n\nArriba y abajo · Enter elige" % [follow, home]
 
 
 func show_hint(text: String) -> void:

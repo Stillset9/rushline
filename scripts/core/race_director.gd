@@ -11,6 +11,7 @@ const SPEED_CAP_MPS := 70.0
 const MAX_SPEED_RAMP := 0.15
 const HITS_TO_END := 3
 const RACE_SCENE := "res://scenes/race/race.tscn"
+const TITLE_SCENE := "res://scenes/menu/title.tscn"
 
 var max_speed_mps: float = INITIAL_MAX_SPEED_MPS
 var initial_max_mps: float = INITIAL_MAX_SPEED_MPS
@@ -20,6 +21,8 @@ var elapsed_s: float = 0.0
 var crashes: int = 0
 var finished: bool = false
 var paused: bool = false
+var pause_row: int = 0
+var returned_home: bool = false
 var hint_s: float = 0.0
 var restart_scene: bool = true
 var restarted: bool = false
@@ -101,8 +104,14 @@ func _process(delta: float) -> void:
 		set_paused(not paused)
 		return
 	if paused:
-		if Input.is_action_just_pressed("ui_accept"):
-			set_paused(false)
+		if Input.is_action_just_pressed("ui_up"):
+			pause_row = 0
+			hud.show_pause(true, pause_row)
+		elif Input.is_action_just_pressed("ui_down"):
+			pause_row = 1
+			hud.show_pause(true, pause_row)
+		elif Input.is_action_just_pressed("ui_accept"):
+			confirm_pause()
 		return
 	if hint_s > 0.0:
 		hint_s = maxf(0.0, hint_s - delta)
@@ -113,7 +122,22 @@ func _process(delta: float) -> void:
 
 func set_paused(next: bool) -> void:
 	paused = next
-	hud.show_pause(paused)
+	if next:
+		pause_row = 0
+	hud.show_pause(paused, pause_row)
+
+
+func confirm_pause() -> void:
+	if pause_row == 0:
+		set_paused(false)
+	else:
+		return_to_title()
+
+
+func return_to_title() -> void:
+	returned_home = true
+	if restart_scene:
+		get_tree().change_scene_to_file(TITLE_SCENE)
 
 
 func request_restart() -> void:
@@ -225,8 +249,11 @@ func _apply_world(state: Progress) -> void:
 	environment.background_color = sky
 	if OS.has_feature("web"):
 		environment.glow_enabled = false
-	environment.fog_enabled = float(state_weather["fog"]) > 0.0
-	environment.fog_density = float(state_weather["fog"])
+		environment.ssao_enabled = false
+	var weather_fog := float(state_weather["fog"])
+	environment.fog_enabled = true
+	environment.fog_density = maxf(weather_fog, 0.0009)
+	environment.fog_aerial_perspective = 0.18
 	environment.fog_light_color = sky
 	world.environment = environment
 	hud.show_course("%s · %s" % [place["name"], state_weather["name"]])

@@ -27,7 +27,7 @@ La sensación buscada es la de un arcade callejero de los años 2000: velocidad,
 - Firma del estudio: HJgames. Debe verse, sin competir con el título.
 - Color del sello: cian `rgb(0.74, 0.96, 1)` sobre fondo casi negro `rgb(0.02, 0.03, 0.05)`.
 - Tipografía: Kenney Future Narrow. Es libre (CC0) y ya tiene acentos.
-- Autos, ciudad, naturaleza y fuente: Kenney, licencia CC0. Se puede atribuir. No hace falta. No sustituirlos por modelos de marcas reales.
+- Autos: Grab3D, licencia CC0, en `assets/vehicles/`. Ciudad, naturaleza y fuente: Kenney, CC0. No sustituirlos por modelos de marcas reales.
 - Música de carrera: Pure Raceway, de MintoDog, dominio público CC0. Efectos de motor, choque y subida de multiplicador: originales, generados en el proyecto.
 
 ## Qué ya se ve

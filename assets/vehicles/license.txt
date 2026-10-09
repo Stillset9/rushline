@@ -1,0 +1,14 @@
+Grab3D vehicle models used by RUSHLINE.
+
+Each GLB embeds extras.license = "CC0-1.0" and extras.source = "grab3d.com".
+The publisher page for every model states CC0 1.0, public domain, commercial use allowed, attribution not required.
+
+Files:
+- sports-car.glb  https://grab3d.com/model/sports-car
+- sedan.glb       https://grab3d.com/model/sedan
+- hatchback.glb   https://grab3d.com/model/hatchback
+- taxi.glb        https://grab3d.com/model/taxi
+- race-car.glb    https://grab3d.com/model/race-car
+
+Direct downloads used: https://grab3d.com/dl/<slug>/<slug>.glb
+The meshes were not edited. RUSHLINE only scales them to 4 m and tints the body in code.
