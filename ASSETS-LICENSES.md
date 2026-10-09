@@ -29,6 +29,15 @@ Se usan `tree_detailed`, `tree_oak`, `tree_pineRoundA`, `tree_pineDefaultB`, `tr
 
 Ver `VEHICLE_ASSET_CREDITS.md`. Grab3D, CC0 1.0, nota embebida en cada GLB.
 
+## Intro de HJGAMES
+
+| Recurso | Autor | Fuente | Licencia | Uso |
+| --- | --- | --- | --- | --- |
+| Orbitron, variable | The Orbitron Project Authors, Matt McInerney. Nombre reservado: Orbitron. | https://fonts.google.com/specimen/Orbitron y https://github.com/theleagueof/orbitron | SIL Open Font License 1.1. Permite uso comercial e incrustar la fuente en un videojuego. No se puede vender la fuente sola ni relicenciarla. El texto de la licencia está en `assets/branding/OFL.txt`. | `assets/branding/Orbitron-Variable.ttf`, wordmark HJGAMES y la línea PRESENTA. Peso 700. |
+| Sting de la intro | Original del proyecto | Síntesis en `scripts/branding/hj_intro.gd` | Obra original. No hay samples de terceros. | Ambiente, subida, ticks metálicos, impacto y cola. El silencio del menú Opciones también lo apaga. |
+
+Si la fuente no carga, el nombre se dibuja con Kenney Future Narrow, CC0, que ya usa la interfaz.
+
 ## Qué no se integró
 
 Downtown City MegaKit de Quaternius es CC0 (https://quaternius.com/packs/downtowncitymegakit.html), pero son más de 300 módulos y la descarga libre pasa por itch.io. No se metió el paquete entero: el juego se publica en GitHub Pages y ese volumen no cabe en una carga web fluida.

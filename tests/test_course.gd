@@ -43,14 +43,14 @@ func run(tree: SceneTree) -> Array:
 	var behind_point: Vector3 = behind.position
 	if absf(behind_point.z + 10.5) > 0.01 or absf(behind_point.x - 2.0) > 0.01:
 		failed.append("behind %s" % behind_point)
-	var bent: Dictionary = CoursePath.pose(CoursePath.STRAIGHT_M + CoursePath.ARC_M, 0.0)
-	var bent_point: Vector3 = bent.position
-	if absf(bent_point.x) < 5.0 or absf(float(bent.yaw)) < 0.2 or bent_point.z < CoursePath.STRAIGHT_M + 50.0:
-		failed.append("bend %s yaw %s" % [bent_point, bent.yaw])
+	var far: Dictionary = CoursePath.pose(Course.STAGE_M, 0.0)
+	var far_point: Vector3 = far.position
+	if absf(far_point.x) > 0.01 or absf(float(far.yaw)) > 0.001 or absf(far_point.z - Course.STAGE_M) > 0.01:
+		failed.append("straight finish %s yaw %s" % [far_point, far.yaw])
 	var span := 0.0
 	for point in CoursePath.samples(40.0, Course.STAGE_M):
 		span = maxf(span, absf(point.x))
-	if span < 20.0:
+	if span > 0.01:
 		failed.append("map span %s" % span)
 	var street := StreetDressing.new()
 	tree.root.add_child(street)

@@ -1,19 +1,20 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/branding/hj_intro.gd" id="1_intro"]
-[ext_resource type="Script" path="res://scripts/branding/hj_mark.gd" id="2_mark"]
+[ext_resource type="Script" path="res://scripts/branding/intro_stage.gd" id="2_stage"]
+[ext_resource type="Script" path="res://scripts/branding/intro_dust.gd" id="3_dust"]
 
-[sub_resource type="Gradient" id="Gradient_field"]
-offsets = PackedFloat32Array(0, 1)
-colors = PackedColorArray(0.1, 0.2, 0.26, 1, 0.02, 0.025, 0.035, 1)
+[sub_resource type="Gradient" id="Gradient_vignette"]
+offsets = PackedFloat32Array(0, 0.48, 1)
+colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.78)
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_field"]
-gradient = SubResource("Gradient_field")
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vignette"]
+gradient = SubResource("Gradient_vignette")
 width = 512
 height = 512
 fill = 1
-fill_from = Vector2(0.5, 0.4)
-fill_to = Vector2(0.85, 0.95)
+fill_from = Vector2(0.5, 0.46)
+fill_to = Vector2(0.5, 1)
 
 [node name="HJGamesIntro" type="Control"]
 layout_mode = 3
@@ -32,9 +33,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.02, 0.025, 0.035, 1)
+color = Color(0, 0, 0, 1)
 
-[node name="GlowField" type="TextureRect" parent="."]
+[node name="StageHost" type="SubViewportContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -42,38 +43,40 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = SubResource("GradientTexture2D_field")
+stretch = true
+
+[node name="StageView" type="SubViewport" parent="StageHost"]
+own_world_3d = true
+handle_input_locally = false
+transparent_bg = false
+size = Vector2i(1440, 810)
+render_target_update_mode = 4
+
+[node name="Stage" type="Node3D" parent="StageHost/StageView"]
+unique_name_in_owner = true
+script = ExtResource("2_stage")
+
+[node name="Dust" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_dust")
+
+[node name="Vignette" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_vignette")
 expand_mode = 1
-
-[node name="Mark" type="Control" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("2_mark")
-
-[node name="Rule" type="ColorRect" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -160.0
-offset_top = 150.0
-offset_right = 160.0
-offset_bottom = 154.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-modulate = Color(1, 1, 1, 0)
-color = Color(0.74, 0.96, 1, 1)
-pivot_offset = Vector2(160, 2)
 
 [node name="NameLabel" type="Label" parent="."]
 unique_name_in_owner = true
@@ -83,21 +86,21 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -640.0
-offset_top = 168.0
-offset_right = 640.0
-offset_bottom = 224.0
+offset_left = -760.0
+offset_top = -70.0
+offset_right = 760.0
+offset_bottom = 70.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.74, 0.96, 1, 1)
-theme_override_constants/letter_spacing = 6
-theme_override_font_sizes/font_size = 32
-text = "HJgames presents"
+theme_override_colors/font_color = Color(0.9, 0.93, 0.97, 1)
+theme_override_constants/letter_spacing = 14
+theme_override_font_sizes/font_size = 92
+text = "HJGAMES"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="GameLabel" type="Label" parent="."]
+[node name="RuleFallback" type="ColorRect" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 8
@@ -105,17 +108,36 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -760.0
-offset_top = 232.0
-offset_right = 760.0
-offset_bottom = 372.0
+offset_left = -180.0
+offset_top = 78.0
+offset_right = 180.0
+offset_bottom = 81.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.97, 0.96, 0.93, 1)
-theme_override_constants/letter_spacing = 12
-theme_override_font_sizes/font_size = 108
-text = "RUSHLINE"
+modulate = Color(1, 1, 1, 0)
+color = Color(0.7, 0.82, 1, 1)
+pivot_offset = Vector2(180, 1.5)
+
+[node name="PresentaLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = 132.0
+offset_right = 420.0
+offset_bottom = 188.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.8, 0.88, 0.96, 1)
+theme_override_constants/letter_spacing = 18
+theme_override_font_sizes/font_size = 30
+text = "PRESENTA"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -129,7 +151,40 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 modulate = Color(1, 1, 1, 0)
-color = Color(0.85, 0.96, 1, 1)
+color = Color(0.78, 0.9, 1, 1)
+
+[node name="SkipHint" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -280.0
+offset_top = -58.0
+offset_right = 280.0
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.62, 0.74, 0.86, 1)
+theme_override_constants/letter_spacing = 1
+theme_override_font_sizes/font_size = 18
+text = "Esc omite    M silencio"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Curtain" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0)
+color = Color(0, 0, 0, 1)
 
 [node name="Audio" type="AudioStreamPlayer" parent="."]
 unique_name_in_owner = true
