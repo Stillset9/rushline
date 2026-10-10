@@ -255,7 +255,7 @@ func _build_pace() -> void:
 	lines.material = _lines_material
 	add_child(lines)
 	move_child(lines, 0)
-	if DisplayServer.get_name() == "headless":
+	if DisplayServer.get_name() == "headless" or not GraphicsProfile.fancy():
 		return
 	var blur := ColorRect.new()
 	blur.set_anchors_preset(Control.PRESET_FULL_RECT)

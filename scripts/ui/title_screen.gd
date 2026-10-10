@@ -212,7 +212,16 @@ func _mount_stage() -> void:
 	move_child(stage, 0)
 	var wash := get_node_or_null("Background") as ColorRect
 	if wash != null:
-		wash.color = Color(0.01, 0.015, 0.03, 0.42)
+		wash.color = Color(0.01, 0.015, 0.03, 0.12)
+	var scrim := ColorRect.new()
+	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scrim.color = Color(0.015, 0.02, 0.035, 0.72)
+	scrim.anchor_right = 0.46
+	scrim.anchor_bottom = 1.0
+	scrim.offset_right = 0.0
+	scrim.offset_bottom = 0.0
+	add_child(scrim)
+	move_child(scrim, 1)
 
 
 func _paint() -> void:

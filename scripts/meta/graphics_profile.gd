@@ -183,7 +183,8 @@ static func _paint_sky(material: ProceduralSkyMaterial, night: bool, sky_color: 
 
 
 static func _grade(environment: Environment, theme_id: String, night: bool) -> void:
-	environment.adjustment_enabled = true
+	# Color adjustment without a working lookup table paints the whole view black.
+	environment.adjustment_enabled = false
 	environment.adjustment_brightness = 0.06 if night else 0.02
 	environment.adjustment_contrast = 1.12 if night else 1.06
 	environment.adjustment_saturation = 0.92 if night else 1.08

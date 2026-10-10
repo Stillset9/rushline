@@ -6,8 +6,9 @@ var _spin := 0.0
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	stretch = true
+	stretch_shrink = 2 if OS.has_feature("web") else 1
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var view := SubViewport.new()
 	view.name = "View"
@@ -64,13 +65,20 @@ func _ready() -> void:
 	view.add_child(_car)
 	_fit_car()
 	var camera := Camera3D.new()
-	camera.position = Vector3(-3.4, 1.55, 4.6)
-	camera.fov = 38.0
+	camera.position = Vector3(-0.4, 1.45, 5.4)
+	camera.fov = 36.0
+	camera.current = true
 	view.add_child(camera)
-	camera.look_at(Vector3(0.4, 0.55, 0.0), Vector3.UP)
+	camera.look_at(Vector3(1.8, 0.5, 0.0), Vector3.UP)
 
 
 func _process(delta: float) -> void:
+	if size.x < 8.0:
+		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		var view_size := get_viewport_rect().size
+		if view_size.x > 8.0:
+			position = Vector2.ZERO
+			size = view_size
 	if _car == null:
 		return
 	_spin += delta * 0.35
@@ -91,4 +99,4 @@ func _fit_car() -> void:
 		return
 	var factor := 4.2 / box.size.z
 	_car.scale = Vector3.ONE * factor
-	_car.position = Vector3(0.6, -box.position.y * factor, 0.0)
+	_car.position = Vector3(2.2, -box.position.y * factor, 0.15)

@@ -55,5 +55,8 @@ func run(tree: SceneTree) -> Array:
 	race.close_if_done()
 	if not race.finished or race.finish_reason != "meta":
 		failed.append("final %s %s" % [race.finished, race.finish_reason])
+	var graded := race.world.environment
+	if graded.adjustment_enabled:
+		failed.append("grade blackout")
 	race.queue_free()
 	return failed

@@ -118,6 +118,7 @@ func _ready() -> void:
 	var opening: Dictionary = Course.theme(int(StageRun.stage(0)["theme"]))
 	hud.show_banner("Etapa 1 · %s" % str(opening["name"]))
 	hud.present_controls(5.0)
+	_apply_web_shot()
 
 
 func _process(delta: float) -> void:
@@ -425,6 +426,20 @@ func _apply_world() -> void:
 	GraphicsProfile.apply_viewport(get_viewport())
 	VehicleVisual.set_headlights(player, night, GraphicsProfile.headlight_spots(night))
 	hud.show_course("%s · %s · Etapa %d/%d" % [place["name"], state_weather["name"], stage_index + 1, StageRun.count()])
+
+
+func _apply_web_shot() -> void:
+	if not OS.has_feature("web"):
+		return
+	var search := ""
+	if ClassDB.class_exists("JavaScriptBridge"):
+		var raw: Variant = JavaScriptBridge.eval("window.location.search", true)
+		search = str(raw)
+	if "noche" in search:
+		stage_index = 5
+		stage_distance = 40.0
+		_apply_world()
+		hud.show_banner("Etapa 6 · Noche")
 
 
 func _rumble(weak: float, strong: float, seconds: float) -> void:
