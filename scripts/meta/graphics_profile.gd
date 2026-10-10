@@ -24,10 +24,20 @@ static func allow_sky() -> bool:
 
 static func rain_amount() -> int:
 	if OS.has_feature("web") or rank() == 0:
-		return 48
+		return 32
 	if rank() == 1:
-		return 110
-	return 180
+		return 64
+	return 96
+
+
+static func lamp_count() -> int:
+	if rank() == 0:
+		return 1 if OS.has_feature("web") else 2
+	if OS.has_feature("web"):
+		return 2
+	if rank() == 1:
+		return 3
+	return 4
 
 
 static func headlight_spots(night: bool) -> bool:
@@ -60,35 +70,23 @@ static func pace_blur(speed_mps: float, boosting: bool) -> float:
 	return lines * (0.05 if rank() >= 2 else 0.028)
 
 
-static func decorate(environment: Environment, night: bool, weather_id: String, sky_color: Color) -> void:
+static func decorate(environment: Environment, night: bool, weather_id: String, sky_color: Color, theme_id: String = "") -> void:
 	var tier := rank()
 	var forward := fancy()
 	var wet := weather_id == "lluvia"
 	var foggy := weather_id == "niebla"
 	if allow_sky():
 		var material := ProceduralSkyMaterial.new()
-		if night:
-			material.sky_top_color = Color(0.01, 0.015, 0.04)
-			material.sky_horizon_color = Color(0.08, 0.1, 0.18)
-			material.ground_horizon_color = Color(0.04, 0.045, 0.06)
-			material.ground_bottom_color = Color(0.01, 0.012, 0.02)
-			material.energy_multiplier = 0.28
-			material.sun_angle_max = 12.0
-		else:
-			material.sky_top_color = sky_color.lerp(Color(0.28, 0.48, 0.82), 0.55)
-			material.sky_horizon_color = sky_color.lerp(Color(0.95, 0.72, 0.48), 0.35)
-			material.ground_horizon_color = sky_color.darkened(0.35)
-			material.ground_bottom_color = Color(0.08, 0.08, 0.07)
-			material.energy_multiplier = 1.05
-			material.sun_angle_max = 28.0
-		material.sky_curve = 0.12
+		_paint_sky(material, night, sky_color, theme_id)
+		material.sky_curve = 0.15
 		var sky := Sky.new()
 		sky.sky_material = material
 		environment.sky = sky
 		environment.background_mode = Environment.BG_SKY
 		environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
-	environment.tonemap_exposure = 1.0
+	environment.tonemap_exposure = 1.22 if night else 1.05
+	_grade(environment, theme_id, night)
 	environment.glow_enabled = forward and tier >= 1
 	environment.glow_intensity = 0.32 if tier == 1 else 0.5
 	environment.glow_strength = 0.68
@@ -101,7 +99,7 @@ static func decorate(environment: Environment, night: bool, weather_id: String, 
 	environment.ssil_enabled = forward and tier >= 2
 	environment.ssil_radius = 3.5
 	environment.ssil_intensity = 0.85
-	environment.ssr_enabled = forward and tier >= 1 and (wet or tier >= 2)
+	environment.ssr_enabled = forward and tier >= 1 and (wet or night or tier >= 2)
 	environment.ssr_max_steps = 48 if tier >= 2 else 24
 	environment.ssr_fade_in = 0.12
 	environment.ssr_fade_out = 1.8
@@ -119,7 +117,9 @@ static func decorate(environment: Environment, night: bool, weather_id: String, 
 		environment.volumetric_fog_albedo = sky_color.lerp(Color(0.75, 0.78, 0.82), 0.5)
 		environment.volumetric_fog_length = 96.0 if foggy else 64.0
 		environment.volumetric_fog_emission = Color(0, 0, 0)
-	var base_fog := 0.016 if foggy else (0.004 if wet else 0.0009)
+	var base_fog := 0.012 if foggy else (0.0022 if wet else 0.0006)
+	if night:
+		base_fog *= 0.45
 	environment.fog_enabled = true
 	environment.fog_density = base_fog
 	environment.fog_aerial_perspective = 0.22 if tier >= 1 else 0.12
@@ -145,6 +145,61 @@ static func apply_viewport(viewport: Viewport) -> void:
 	else:
 		viewport.msaa_3d = Viewport.MSAA_2X if tier >= 2 else Viewport.MSAA_DISABLED
 		viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+
+
+static func _paint_sky(material: ProceduralSkyMaterial, night: bool, sky_color: Color, theme_id: String) -> void:
+	if night:
+		material.sky_top_color = Color(0.04, 0.07, 0.16)
+		material.sky_horizon_color = Color(0.22, 0.3, 0.48)
+		material.ground_horizon_color = Color(0.05, 0.06, 0.09)
+		material.ground_bottom_color = Color(0.015, 0.018, 0.03)
+		material.energy_multiplier = 0.95
+		material.sun_angle_max = 18.0
+		return
+	var top := sky_color.lerp(Color(0.28, 0.48, 0.82), 0.55)
+	var horizon := sky_color.lerp(Color(0.95, 0.72, 0.48), 0.35)
+	match theme_id:
+		"desierto":
+			top = Color(0.55, 0.62, 0.86)
+			horizon = Color(0.98, 0.62, 0.32)
+		"bosque":
+			top = Color(0.28, 0.52, 0.72)
+			horizon = Color(0.72, 0.84, 0.62)
+		"costa":
+			top = Color(0.22, 0.52, 0.86)
+			horizon = Color(0.95, 0.78, 0.55)
+		"industrial":
+			top = Color(0.32, 0.36, 0.42)
+			horizon = Color(0.72, 0.58, 0.42)
+		"atardecer":
+			top = Color(0.28, 0.22, 0.48)
+			horizon = Color(0.98, 0.42, 0.28)
+	material.sky_top_color = top
+	material.sky_horizon_color = horizon
+	material.ground_horizon_color = horizon.darkened(0.45)
+	material.ground_bottom_color = Color(0.08, 0.08, 0.07)
+	material.energy_multiplier = 1.12
+	material.sun_angle_max = 30.0
+
+
+static func _grade(environment: Environment, theme_id: String, night: bool) -> void:
+	environment.adjustment_enabled = true
+	environment.adjustment_brightness = 0.06 if night else 0.02
+	environment.adjustment_contrast = 1.12 if night else 1.06
+	environment.adjustment_saturation = 0.92 if night else 1.08
+	match theme_id:
+		"desierto":
+			environment.adjustment_saturation = 1.18
+			environment.tonemap_exposure = 1.1
+		"bosque":
+			environment.adjustment_saturation = 1.14
+		"costa":
+			environment.adjustment_saturation = 1.1
+			environment.tonemap_exposure = 1.08
+		"noche":
+			environment.adjustment_brightness = 0.08
+			environment.adjustment_contrast = 1.14
+			environment.tonemap_exposure = 1.28
 
 
 static func tune_sun(sun: DirectionalLight3D) -> void:

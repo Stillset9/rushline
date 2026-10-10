@@ -6,7 +6,9 @@ Jugar en el navegador: https://stillset9.github.io/rushline/
 
 ## Cómo se juega
 
-Empiezas con el depósito lleno. El combustible baja según los metros que recorres, y el nitro lo gasta más rápido. Si se acaba, la carrera termina.
+La intro muestra HJGAMES PRESENTA y después el título. Dura unos seis segundos. Cualquier tecla, clic o botón la salta. En Opciones, «Saltar intro» la omite la próxima vez.
+
+Empiezas con el depósito lleno. El combustible baja según los metros que recorres, y el nitro lo gasta más rápido. Si se acaba, la carrera termina. Al terminar ves distancia, tiempo, choques, puntos y dinero.
 
 Hay seis etapas seguidas: Ciudad, Costa, Desierto, Bosque, Industrial y Noche. Cada una es más larga. Al cruzar el control se recarga una parte del depósito y sigues con el combustible que te queda. La última meta cierra la tanda.
 
@@ -23,14 +25,15 @@ En el garaje se compran motor, tope de velocidad y nitro. Hacen falta varias tan
 | Nitro | Shift | Gatillo derecho |
 | Marcha baja / alta | Q | Botón Y |
 | Confirmar | Enter | A o Start |
-| Atrás, pausa, saltar intro | Esc | — |
+| Atrás o pausa | Esc | — |
+| Saltar intro | Cualquier tecla, clic o botón | Cualquier botón |
 | Menú | Flechas o W S, y también el mouse | Cruz |
 
 En pausa: Seguir o volver al inicio. Al terminar, Enter o un clic empieza otra vez.
 
 ## Gráficos
 
-En Opciones se elige Bajo, Medio o Alto. En la computadora, Medio y Alto encienden sombras, brillo, oclusión y, en Alto, iluminación global y niebla volumétrica. En el navegador se usa una versión más ligera para que cargue bien.
+En Opciones se elige Bajo, Medio o Alto, y si se salta la intro. En la computadora, Medio y Alto encienden sombras, brillo, oclusión y, en Alto, iluminación global y niebla volumétrica. De noche hay luna y faroles. En el navegador se usa una versión más ligera para que cargue bien. Los controles de la carrera aparecen un momento al empezar y también en la pausa.
 
 ## Créditos
 

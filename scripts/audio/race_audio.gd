@@ -8,6 +8,7 @@ var _engine: AudioStreamPlayer
 var _hit: AudioStreamPlayer
 var _rise: AudioStreamPlayer
 var _music: AudioStreamPlayer
+var _whoosh: AudioStreamPlayer
 var _audible := false
 
 
@@ -23,6 +24,11 @@ static func engine_sample(time_s: float) -> float:
 static func hit_sample(time_s: float) -> float:
 	var env := exp(-time_s * 18.0)
 	return clampf(sin(TAU * 70.0 * time_s) * env * 0.8, -1.0, 1.0)
+
+
+static func whoosh_sample(time_s: float) -> float:
+	var env := exp(-time_s * 4.0) * clampf(time_s * 20.0, 0.0, 1.0)
+	return clampf(sin(TAU * 180.0 * time_s) * 0.45 * env, -1.0, 1.0)
 
 
 static func rise_sample(time_s: float) -> float:
@@ -42,6 +48,7 @@ func _ready() -> void:
 	_engine = _player("Engine", _wav(0.5, MIX_RATE, engine_sample), true)
 	_hit = _player("Hit", _wav(0.16, MIX_RATE, hit_sample), false)
 	_rise = _player("Rise", _wav(0.22, MIX_RATE, rise_sample), false)
+	_whoosh = _player("Whoosh", _wav(0.45, MIX_RATE, whoosh_sample), false)
 	if _audible:
 		_music = AudioStreamPlayer.new()
 		_music.name = "Music"
@@ -68,8 +75,12 @@ func play_rise() -> void:
 	_restart(_rise)
 
 
+func play_whoosh() -> void:
+	_restart(_whoosh)
+
+
 func _exit_tree() -> void:
-	for player in [_engine, _hit, _rise, _music]:
+	for player in [_engine, _hit, _rise, _whoosh, _music]:
 		if player != null and is_instance_valid(player) and player.playing:
 			player.stop()
 

@@ -67,8 +67,9 @@ func apply_wet(amount: float) -> void:
 		var material := mesh_instance.material_override as StandardMaterial3D
 		if box == null or material == null or box.size.x < 2.0:
 			continue
-		material.roughness = lerpf(0.9, 0.12, amount)
-		material.metallic = lerpf(0.02, 0.48, amount)
+		material.roughness = lerpf(0.88, 0.06, amount)
+		material.metallic = lerpf(0.04, 0.66, amount)
+		material.metallic_specular = lerpf(0.2, 0.8, amount)
 
 
 func apply_palette(asphalt: Color, paint: Color) -> void:

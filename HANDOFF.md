@@ -54,7 +54,7 @@ Juego Nuevo/
 ├── export_presets.cfg         # un solo preset: Web → docs/index.html
 ├── ASSETS-LICENSES.md         # superficies, ciudad, naturaleza, intro
 ├── VEHICLE_ASSET_CREDITS.md   # flota Grab3D
-├── RUSHLINE-efectos-visuales.md  # brief para efectos futuros (intro desactualizada)
+├── README.md                     # cómo jugar, controles y créditos
 ├── HANDOFF.md                 # este archivo
 ├── assets/
 │   ├── branding/              # Orbitron + OFL.txt + README de la intro
@@ -84,7 +84,7 @@ Juego Nuevo/
 | `scripts/branding/hj_intro.gd` | Timeline 8 s, skip, mute M, audio sintético, salto al título |
 | `scripts/branding/intro_stage.gd` | Logo 3D (Label3D extruido), haz, partículas, cámara |
 | `scripts/branding/intro_dust.gd` | Polvo 2D sobre el viewport |
-| `scripts/branding/hj_mark.gd` | Monograma 2D **ya no está en la escena**. `test_intro` aún llama `HJMark.origin_for` |
+| `scripts/branding/hj_intro.gd` | Intro HJGAMES PRESENTA y título RUSHLINE, unos 6 s |
 | `scripts/ui/title_screen.gd` | Menú: jugar, garaje, récords, opciones, créditos, salir |
 | `scripts/ui/garage_screen.gd` | Compra motor / tope / nitro |
 | `scripts/core/race_director.gd` | Loop de carrera, pausa, fin, cielo, glow/SSAO web |
@@ -220,8 +220,7 @@ No hay Firebase, Stripe, Auth, analytics ni API keys en el código (búsqueda de
 - **Recentering del origen del mundo** (Z crece sin reset): pedido nunca hecho; no empezarlo solo.
 - **Toggle de ajustes “saltar intro”**: diferido. Hoy se salta con input, no hay checkbox.
 - **Glow/SSAO en web**: apagados a propósito (bloom Compatibility volvía el cielo blanco).
-- `RUSHLINE-efectos-visuales.md` describe la intro **vieja** (4 s, monograma HJ, texto «HJgames presents»). La intro real es la de `a8eebc5`.
-- `scripts/branding/hj_mark.gd` sigue en el repo pero la escena de intro ya no lo instancia.
+- La intro muestra HJGAMES PRESENTA y luego RUSHLINE, unos 6 s. El monograma viejo y el brief de efectos ya no están.
 - Carpetas raíz vacías (`audio/`, `data/`, etc.).
 - `backups/` sin commitear (a propósito).
 
@@ -309,7 +308,7 @@ No hay cambios staged ni modificados. Solo `backups/` sin trackear. **No commite
 2. No empezar recentering de origen ni toggle “saltar intro” salvo pedido explícito.
 3. Si piden más espacio visual en la calle: subir `ROAD_CLEAR` o bajar altura de rascacielos; no deshacer el clamp a 17.
 4. Si piden curvas otra vez: reactivar layout en `course_path.gd` **y** actualizar `test_course` (hoy exige recta y span X ≈ 0).
-5. Limpieza opcional no pedida: borrar o dejar de testear `hj_mark.gd`; actualizar `RUSHLINE-efectos-visuales.md`; ignorar `backups/` en `.gitignore`.
+5. El monograma y el brief de efectos ya se quitaron. `backups/` sigue fuera del repo.
 6. No reactivar glow web, no meter Quaternius, no copiar circuitos con nombre.
 
 Cuando el usuario pida publicar: export Web + commit (sin `backups/`) + push + chequear Pages.
@@ -373,7 +372,7 @@ No hay `.cursor/rules`, `.cursorrules` ni `AGENTS.md` **en este repo**. Hay un p
 15. Auto-review de Cursor a veces bloquea `git push` a `rushline` o descargas de grab3d.com. Reintentar con aprobación si el usuario lo pidió.
 16. `test_course` instancia `StreetDressing` y llama `blocks_road()` / `blocks_path()`; liberar con `queue_free()`.
 17. Primeras noches + lluvia: no es bug de cielo, es `races % 3`.
-18. Brief `RUSHLINE-efectos-visuales.md` miente sobre la intro actual: no lo uses como spec de branding sin leer `hj_intro.gd`.
+18. La intro actual está en `hj_intro.gd`: HJGAMES PRESENTA y después RUSHLINE.
 
 ### Comandos que fallan y arreglo
 

@@ -10,6 +10,7 @@ static var music := 0.35
 static var sfx := 1.0
 static var muted := false
 static var quality := "medio"
+static var skip_intro := false
 
 
 static func load_state() -> void:
@@ -23,6 +24,7 @@ static func load_state() -> void:
 	muted = bool(file.get_value("audio", "muted", false))
 	var stored := str(file.get_value("video", "quality", quality))
 	quality = stored if LEVELS.has(stored) else "medio"
+	skip_intro = bool(file.get_value("video", "skip_intro", skip_intro))
 
 
 static func save() -> void:
@@ -33,6 +35,7 @@ static func save() -> void:
 	file.set_value("audio", "sfx", sfx)
 	file.set_value("audio", "muted", muted)
 	file.set_value("video", "quality", quality)
+	file.set_value("video", "skip_intro", skip_intro)
 	file.save(PATH)
 
 
@@ -61,6 +64,14 @@ static func cycle_quality(direction: int) -> void:
 	if index < 0:
 		index = 1
 	quality = LEVELS[posmod(index + direction, LEVELS.size())]
+
+
+static func toggle_skip() -> void:
+	skip_intro = not skip_intro
+
+
+static func skip_name() -> String:
+	return "Sí" if skip_intro else "No"
 
 
 static func quality_name() -> String:

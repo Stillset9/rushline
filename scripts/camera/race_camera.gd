@@ -9,7 +9,7 @@ const SMOOTH := 5.0
 const FOV_BASE := 60.0
 const FOV_AT_CAP := 72.0
 const SPEED_FOR_FOV := 70.0
-const NITRO_FOV := 6.0
+const NITRO_FOV := 8.0
 const FOV_LIMIT := 78.0
 const SHAKE_S := 0.16
 

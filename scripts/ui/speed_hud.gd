@@ -19,6 +19,12 @@ var _fuel_fill: ColorRect
 var _gear_label: Label
 var _lines_material: ShaderMaterial
 var _blur_material: ShaderMaterial
+var _card: Control
+var _banner: Label
+var _shade: ColorRect
+var _controls_s := 0.0
+var _banner_s := 0.0
+var _paused_ui := false
 
 
 func _ready() -> void:
@@ -26,6 +32,22 @@ func _ready() -> void:
 	_apply_font(self, font_theme)
 	_build_fuel()
 	_build_pace()
+	_build_chrome()
+
+
+func _process(delta: float) -> void:
+	if _banner != null and _banner_s > 0.0:
+		_banner_s = maxf(0.0, _banner_s - delta)
+		var life := clampf(_banner_s / 0.35, 0.0, 1.0)
+		var intro := clampf((2.3 - _banner_s) / 0.28, 0.0, 1.0)
+		_banner.modulate.a = minf(life, intro)
+		_banner.scale = Vector2.ONE * lerpf(1.08, 1.0, intro)
+		_banner.visible = _banner_s > 0.0
+	if _card == null or _paused_ui:
+		return
+	if _controls_s > 0.0:
+		_controls_s = maxf(0.0, _controls_s - delta)
+	_card.visible = _controls_s > 0.0
 
 
 func _apply_font(node: Node, font_theme: Theme) -> void:
@@ -79,6 +101,8 @@ func show_finish(score: int, reason: String = "") -> void:
 		title = "Sin combustible"
 	_finish_label.text = "%s\n%s" % [title, format_score(score)]
 	_restart_hint.visible = true
+	if _shade != null:
+		_shade.visible = true
 
 
 func show_fuel(fraction: float) -> void:
@@ -115,7 +139,10 @@ func show_course(label: String) -> void:
 
 
 func show_pause(active: bool, row: int = 0) -> void:
+	_paused_ui = active
 	_pause_label.visible = active
+	if _card != null:
+		_card.visible = active or _controls_s > 0.0
 	if not active:
 		return
 	_pause_label.add_theme_font_size_override("font_size", 40)
@@ -129,16 +156,34 @@ func show_hint(text: String) -> void:
 	_hint_label.text = text
 
 
-func show_standing(best: int, money: int, record: bool) -> void:
+func show_standing(best: int, money: int, record: bool, distance_m: float = 0.0, elapsed_s: float = 0.0, crashes: int = 0) -> void:
 	_standing_label.visible = true
 	var headline := "Nuevo récord" if record else "Récord %d" % best
-	_standing_label.text = "%s\nDinero %d cr" % [headline, money]
+	var minutes := int(elapsed_s) / 60
+	var seconds := int(elapsed_s) % 60
+	_standing_label.text = "Distancia  %d m\nTiempo  %d:%02d\nChoques  %d\n%s\nDinero  %d cr" % [int(distance_m), minutes, seconds, crashes, headline, money]
+
+
+func show_banner(text: String) -> void:
+	if _banner == null:
+		return
+	_banner.text = text
+	_banner_s = 2.3
+	_banner.visible = true
+	_banner.modulate.a = 0.0
+
+
+func present_controls(seconds: float) -> void:
+	_controls_s = seconds
+	if _card != null:
+		_card.visible = true
 
 
 func _build_fuel() -> void:
 	var panel := $Panel as Control
 	panel.offset_bottom = 330.0
-	_track_map.offset_top = 346.0
+	_track_map.offset_top = 292.0
+	_track_map.offset_bottom = 560.0
 	_gear_label = Label.new()
 	_gear_label.position = Vector2(168.0, 176.0)
 	_gear_label.size = Vector2(90.0, 32.0)
@@ -167,6 +212,36 @@ func _build_fuel() -> void:
 	var font_theme: Theme = preload("res://ui/rushline_theme.tres")
 	_gear_label.theme = font_theme
 	_fuel_label.theme = font_theme
+
+
+func _build_chrome() -> void:
+	_card = get_node_or_null("ControlCard")
+	if _card != null:
+		_card.visible = false
+	_shade = ColorRect.new()
+	_shade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_shade.color = Color(0.01, 0.015, 0.03, 0.62)
+	_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shade.visible = false
+	add_child(_shade)
+	move_child(_shade, 0)
+	_banner = Label.new()
+	_banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_banner.offset_left = -520.0
+	_banner.offset_top = 150.0
+	_banner.offset_right = 520.0
+	_banner.offset_bottom = 230.0
+	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_banner.add_theme_font_size_override("font_size", 54)
+	_banner.add_theme_color_override("font_color", Color(0.74, 0.96, 1))
+	_banner.add_theme_color_override("font_outline_color", Color(0.02, 0.03, 0.05))
+	_banner.add_theme_constant_override("outline_size", 10)
+	_banner.theme = preload("res://ui/rushline_theme.tres")
+	_banner.pivot_offset = Vector2(520, 40)
+	_banner.visible = false
+	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_banner)
 
 
 func _build_pace() -> void:

@@ -39,12 +39,18 @@ static func paint(body: MeshInstance3D, color: Color) -> void:
 	if source != null and source.albedo_texture != null:
 		material = source.duplicate() as StandardMaterial3D
 	else:
-		material.roughness = 0.22
-		material.metallic = 0.42
+		material.roughness = 0.16
+		material.metallic = 0.55
+	material.roughness = minf(material.roughness, 0.2)
+	material.metallic = maxf(material.metallic, 0.48)
+	material.metallic_specular = 0.74
 	if _clearcoat_ok():
 		material.clearcoat_enabled = true
-		material.clearcoat = 0.55
-		material.clearcoat_roughness = 0.18
+		material.clearcoat = 0.82
+		material.clearcoat_roughness = 0.08
+		material.rim_enabled = true
+		material.rim = 0.28
+		material.rim_tint = 0.35
 	material.albedo_color = color
 	body.material_override = material
 	for child in body.get_children():

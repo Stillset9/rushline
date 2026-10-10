@@ -29,6 +29,8 @@ var pause_row: int = 0
 var returned_home: bool = false
 var hint_s: float = 0.0
 var wall_cool: float = 0.0
+var hit_slow: float = 0.0
+var _was_boosting := false
 var restart_scene: bool = true
 var restarted: bool = false
 var score_keeper := ScoreKeeper.new()
@@ -113,9 +115,9 @@ func _ready() -> void:
 	_skids = SkidMarks.new()
 	_skids.name = "SkidMarks"
 	add_child(_skids)
-	if progress.races == 0:
-		hint_s = 8.0
-		hud.show_hint("A y D doblan · S frena · Shift nitro · Q marcha")
+	var opening: Dictionary = Course.theme(int(StageRun.stage(0)["theme"]))
+	hud.show_banner("Etapa 1 · %s" % str(opening["name"]))
+	hud.present_controls(5.0)
 
 
 func _process(delta: float) -> void:
@@ -133,6 +135,9 @@ func _process(delta: float) -> void:
 		if hint_s == 0.0:
 			hud.show_hint("")
 	var step := minf(maxf(delta, 0.0), MAX_FRAME_S)
+	if hit_slow > 0.0:
+		hit_slow = maxf(0.0, hit_slow - delta)
+		step *= 0.28
 	if step > 0.0:
 		simulate(step)
 
@@ -179,7 +184,7 @@ func confirm_pause() -> void:
 func return_to_title() -> void:
 	returned_home = true
 	if restart_scene:
-		get_tree().change_scene_to_file(TITLE_SCENE)
+		SceneFade.to(TITLE_SCENE)
 
 
 func close_if_done() -> void:
@@ -202,7 +207,7 @@ func _end_race(reason: String) -> void:
 	var record := progress.note_finish(shown, cleared)
 	race_finished.emit(shown, reason)
 	hud.show_hint("")
-	hud.show_standing(progress.best_score, progress.money, record)
+	hud.show_standing(progress.best_score, progress.money, record, distance_m, elapsed_s, crashes)
 
 
 func request_restart() -> void:
@@ -210,7 +215,7 @@ func request_restart() -> void:
 		return
 	restarted = true
 	if restart_scene:
-		get_tree().change_scene_to_file(RACE_SCENE)
+		SceneFade.to(RACE_SCENE)
 
 
 func simulate(delta: float) -> void:
@@ -258,6 +263,8 @@ func simulate(delta: float) -> void:
 			race_audio.play_hit()
 			player.show_impact()
 			race_camera.kick()
+			hit_slow = 0.16
+			_rumble(0.55, 0.85, 0.18)
 		score_keeper.register_hit()
 		score_keeper.add_hit_distance(travel_speed * delta)
 	else:
@@ -283,6 +290,10 @@ func simulate(delta: float) -> void:
 	road.tick(player.track_z())
 	street.follow(road.origins())
 	_skids.follow_drift(player.drifting, player.track_z(), player.track_x(), delta)
+	if player.boosting and not _was_boosting:
+		race_audio.play_whoosh()
+		_rumble(0.15, 0.4, 0.12)
+	_was_boosting = player.boosting
 	race_camera.boosting = player.boosting
 	race_camera.follow(delta, player.track_z(), player.track_x())
 	race_camera.apply_drive(player.speed_mps, player.boosting)
@@ -303,7 +314,7 @@ func _checkpoint(length: float) -> void:
 	_apply_world()
 	var place: Dictionary = Course.theme(int(StageRun.stage(stage_index)["theme"]))
 	hint_s = 2.4
-	hud.show_hint("Etapa %d · %s" % [stage_index + 1, str(place["name"])])
+	hud.show_banner("Etapa %d · %s" % [stage_index + 1, str(place["name"])])
 
 
 func _commit_motion(speed_mps: float, delta: float) -> void:
@@ -370,7 +381,10 @@ func _apply_world() -> void:
 	var state_weather := Course.weather(int(plan["weather"]))
 	var weather_id := str(state_weather["id"])
 	road.pressure = float(plan["pressure"])
-	road.wetness = GraphicsProfile.wet_strength(weather_id)
+	var wet := GraphicsProfile.wet_strength(weather_id)
+	if bool(place.get("night", false)):
+		wet = maxf(wet, 0.62)
+	road.wetness = wet
 	road.apply_palette(place["asphalt"], place["paint"])
 	street.apply_place(str(place["id"]))
 	rain.set_density(GraphicsProfile.rain_amount())
@@ -383,21 +397,24 @@ func _apply_world() -> void:
 		sky = (place["sky"] as Color).lerp(sky, 0.2)
 	if _sky != null:
 		_sky.set_night(night)
+	street.set_night(night)
 	if night:
-		sun.light_color = Color(0.62, 0.74, 1.0)
-		sun.light_energy = 0.28
-		fill.light_energy = 0.16
-		_aim_celestial(0.22)
+		sun.light_color = Color(0.78, 0.86, 1.0)
+		sun.light_energy = 1.15
+		fill.light_color = Color(0.62, 0.74, 1.0)
+		fill.light_energy = 0.62
+		_aim_celestial(0.42)
 	else:
 		sun.light_color = Color(1.0, 0.95, 0.78)
 		sun.light_energy = 2.2
-		fill.light_energy = 0.4
+		fill.light_color = Color(1.0, 0.94, 0.82)
+		fill.light_energy = 0.45
 		_aim_celestial(0.2)
 	GraphicsProfile.tune_sun(sun)
 	var environment := world.environment.duplicate()
 	environment.background_color = sky
-	environment.ambient_light_energy = 0.22 if night else 0.5
-	GraphicsProfile.decorate(environment, night, weather_id, sky)
+	environment.ambient_light_energy = 0.7 if night else 0.55
+	GraphicsProfile.decorate(environment, night, weather_id, sky, str(place["id"]))
 	if not GraphicsProfile.fancy():
 		environment.glow_enabled = false
 		environment.ssao_enabled = false
@@ -408,3 +425,9 @@ func _apply_world() -> void:
 	GraphicsProfile.apply_viewport(get_viewport())
 	VehicleVisual.set_headlights(player, night, GraphicsProfile.headlight_spots(night))
 	hud.show_course("%s · %s · Etapa %d/%d" % [place["name"], state_weather["name"], stage_index + 1, StageRun.count()])
+
+
+func _rumble(weak: float, strong: float, seconds: float) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	Input.start_joy_vibration(0, weak, strong, seconds)

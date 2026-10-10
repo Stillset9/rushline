@@ -43,11 +43,13 @@ const GROUND := {
 	"noche": Color(0.03, 0.035, 0.04),
 }
 
-const ROAD_CLEAR := 17.0
-const TOWER_CLEAR := 28.0
+const ROAD_CLEAR := 20.0
+const TOWER_CLEAR := 34.0
 
 var _blocks: Array[Node3D] = []
 var _fill: MeshInstance3D
+var _lamps: Array[OmniLight3D] = []
+var _night := false
 
 
 func _ready() -> void:
@@ -57,6 +59,17 @@ func _ready() -> void:
 		var block := _make_block(index)
 		add_child(block)
 		_blocks.append(block)
+	for _i in 4:
+		var lamp := OmniLight3D.new()
+		lamp.shadow_enabled = false
+		lamp.omni_range = 24.0
+		lamp.omni_attenuation = 1.35
+		lamp.light_energy = 3.4
+		lamp.light_color = Color(1.0, 0.78, 0.48)
+		lamp.light_specular = 0.65
+		lamp.visible = false
+		add_child(lamp)
+		_lamps.append(lamp)
 
 
 func follow(chunk_origins: Array) -> void:
@@ -67,6 +80,7 @@ func follow(chunk_origins: Array) -> void:
 	var mid := CoursePath.pose(float(chunk_origins[chunk_origins.size() / 2]) + RoadStreamer.CHUNK_LENGTH * 0.5, 0.0)
 	var point: Vector3 = mid.position
 	_fill.position = Vector3(point.x, -0.2, point.z)
+	_place_lamps(float(chunk_origins[0]))
 
 
 func apply_place(theme_id: String) -> void:
@@ -88,19 +102,19 @@ func _make_block(index: int) -> Node3D:
 	var block := Node3D.new()
 	var ground := _slab(block, Vector3(0.0, -0.08, 20.0), Vector3(80.0, 0.16, 56.0), GROUND["ciudad"])
 	ground.name = "Ground"
-	_slab(block, Vector3(-8.4, 0.1, 20.0), Vector3(2.6, 0.1, 48.0), Color(0.78, 0.78, 0.76), SIDEWALK_TEX)
-	_slab(block, Vector3(8.4, 0.1, 20.0), Vector3(2.6, 0.1, 48.0), Color(0.78, 0.78, 0.76), SIDEWALK_TEX)
-	_stripe(block, -7.05)
-	_stripe(block, 7.05)
+	_slab(block, Vector3(-15.2, 0.12, 20.0), Vector3(6.2, 0.12, 48.0), Color(0.78, 0.78, 0.76), SIDEWALK_TEX)
+	_slab(block, Vector3(15.2, 0.12, 20.0), Vector3(6.2, 0.12, 48.0), Color(0.78, 0.78, 0.76), SIDEWALK_TEX)
+	_stripe(block, -11.8)
+	_stripe(block, 11.8)
 	var city := _group(block, "City")
 	if index % 2 == 0:
 		_fit(city, CROSSING, Vector3(0.0, 0.16, 18.0), Vector3(12.0, 0.02, 3.0))
-	_stand(city, LAMP, Vector3(-8.9, 0.0, 6.0), 6.2, PI, false)
-	_stand(city, LAMP, Vector3(8.9, 0.0, 26.0), 6.2, 0.0, false)
+	_stand(city, LAMP, Vector3(-12.2, 0.0, 6.0), 6.2, PI, false)
+	_stand(city, LAMP, Vector3(12.2, 0.0, 26.0), 6.2, 0.0, false)
 	for step in 4:
 		var rail_z := 5.0 + float(step) * 10.0
-		_fit(city, BARRIER, Vector3(-7.35, 0.42, rail_z), Vector3(0.28, 0.75, 9.2))
-		_fit(city, BARRIER, Vector3(7.35, 0.42, rail_z), Vector3(0.28, 0.75, 9.2))
+		_fit(city, BARRIER, Vector3(-9.6, 0.42, rail_z), Vector3(0.28, 0.75, 9.2))
+		_fit(city, BARRIER, Vector3(9.6, 0.42, rail_z), Vector3(0.28, 0.75, 9.2))
 	_stand(city, SIGN, Vector3(-9.35, 0.0, 14.0), 2.3, PI, false)
 	_stand(city, SIGN, Vector3(9.35, 0.0, 30.0), 2.3, 0.0, false)
 	_stand(city, HIGHWAY, Vector3(11.2, 0.0, 4.0), 5.2, 0.0, false)
@@ -112,17 +126,21 @@ func _make_block(index: int) -> Node3D:
 		_fit(city, BRIDGE, Vector3(24.0, 3.4, 20.0), Vector3(8.0, 2.4, 18.0))
 		_fit(city, BRIDGE, Vector3(-24.0, 3.4, 20.0), Vector3(8.0, 2.4, 18.0))
 	var spots: Array[Vector3] = [
-		Vector3(-13.2, 0.0, 6.0),
-		Vector3(-16.4, 0.0, 20.0),
-		Vector3(-13.6, 0.0, 34.0),
-		Vector3(13.2, 0.0, 8.0),
-		Vector3(16.4, 0.0, 22.0),
-		Vector3(13.6, 0.0, 36.0),
+		Vector3(-24.0, 0.0, 6.0),
+		Vector3(-30.0, 0.0, 20.0),
+		Vector3(-24.5, 0.0, 34.0),
+		Vector3(24.0, 0.0, 8.0),
+		Vector3(30.0, 0.0, 22.0),
+		Vector3(24.5, 0.0, 36.0),
 	]
 	var heights: Array[float] = [14.0, 24.0, 11.0, 16.0, 28.0, 13.0]
 	for spot in spots.size():
 		var scene: PackedScene = BUILDINGS[(index + spot * 2) % BUILDINGS.size()]
 		_stand(city, scene, spots[spot], heights[spot], 0.0 if spots[spot].x > 0.0 else PI, false)
+	_neon(city, Vector3(-18.5, 7.2, 14.0), Color(0.15, 0.85, 1.0))
+	_neon(city, Vector3(18.8, 8.4, 28.0), Color(1.0, 0.28, 0.55))
+	_stand(city, TREE, Vector3(-17.4, 0.0, 18.0), 8.5, 0.4, true)
+	_stand(city, PALM, Vector3(17.6, 0.0, 12.0), 9.0, 0.2, true)
 	var palms := _group(block, "Palms")
 	_stand(palms, PALM, Vector3(-12.0, 0.0, 8.0), 12.0, 0.4, true)
 	_stand(palms, PALM, Vector3(12.5, 0.0, 18.0), 14.0, -0.6, true)
@@ -236,6 +254,39 @@ func _keep_off_road(node: Node3D) -> void:
 		node.position.x += clear - min_x
 	else:
 		node.position.x -= max_x + clear
+
+
+func set_night(active: bool) -> void:
+	_night = active
+	var count := GraphicsProfile.lamp_count() if active else 0
+	for index in _lamps.size():
+		_lamps[index].visible = index < count
+
+
+func _place_lamps(origin: float) -> void:
+	if _lamps.is_empty():
+		return
+	var count := GraphicsProfile.lamp_count() if _night else 0
+	for index in _lamps.size():
+		var lamp := _lamps[index]
+		lamp.visible = index < count
+		if not lamp.visible:
+			continue
+		var side := -1.0 if index % 2 == 0 else 1.0
+		var along := origin + 8.0 + float(index) * 16.0
+		var pose := CoursePath.pose(along, side * 12.4)
+		var point: Vector3 = pose.position
+		lamp.global_position = point + Vector3(0.0, 5.6, 0.0)
+
+
+func _neon(parent: Node3D, at: Vector3, color: Color) -> void:
+	var mesh_instance := _slab(parent, at, Vector3(3.4, 1.15, 0.18), color)
+	var material := mesh_instance.material_override as StandardMaterial3D
+	material.emission_enabled = true
+	material.emission = color
+	material.emission_energy_multiplier = 4.5
+	material.roughness = 0.25
+	material.metallic = 0.15
 
 
 func _clearance(node: Node3D) -> float:

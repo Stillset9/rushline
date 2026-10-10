@@ -12,6 +12,8 @@ var opened_garage := false
 var selection := 0
 var page := ""
 var page_row := 0
+var _reveal := 1.0
+var _accent: ColorRect
 
 @onready var _options: Array[Label] = []
 var _page_label: Label
@@ -21,6 +23,8 @@ var _shade: ColorRect
 func _ready() -> void:
 	theme = preload("res://ui/rushline_theme.tres")
 	GameSettings.load_state()
+	_mount_stage()
+	_reveal = 0.0
 	_options = [%PlayLabel, %GarageLabel, %RecordsLabel, %OptionsLabel, %CreditsLabel, %QuitLabel]
 	var state := Progress.load_state()
 	%StatusLabel.text = "Dinero %d cr · Récord %d" % [state.money, state.best_score]
@@ -43,20 +47,26 @@ func _ready() -> void:
 	for index in _options.size():
 		var option := _options[index]
 		option.mouse_filter = Control.MOUSE_FILTER_STOP
+		option.pivot_offset = Vector2(320, 23)
 		option.gui_input.connect(_on_menu_click.bind(index))
 		option.mouse_entered.connect(_on_menu_hover.bind(index))
 	_paint()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _reveal < 1.0:
+		_reveal = minf(1.0, _reveal + delta * 1.8)
+		_paint()
 	if page != "":
 		_process_page()
 		return
 	if Input.is_action_just_pressed("ui_up"):
 		selection = posmod(selection - 1, OPTIONS.size())
+		UiAudio.blip()
 		_paint()
 	elif Input.is_action_just_pressed("ui_down"):
 		selection = posmod(selection + 1, OPTIONS.size())
+		UiAudio.blip()
 		_paint()
 	elif Input.is_action_just_pressed("ui_accept"):
 		_confirm()
@@ -69,7 +79,7 @@ func request_play() -> void:
 		return
 	started = true
 	if auto_change_scene:
-		get_tree().change_scene_to_file(RACE_SCENE)
+		SceneFade.to(RACE_SCENE)
 
 
 func request_garage() -> void:
@@ -77,7 +87,7 @@ func request_garage() -> void:
 		return
 	opened_garage = true
 	if auto_change_scene:
-		get_tree().change_scene_to_file(GARAGE_SCENE)
+		SceneFade.to(GARAGE_SCENE)
 
 
 func request_quit() -> void:
@@ -121,9 +131,9 @@ func _process_page() -> void:
 	if page != "opciones":
 		return
 	if Input.is_action_just_pressed("ui_up"):
-		page_row = posmod(page_row - 1, 4)
+		page_row = posmod(page_row - 1, 5)
 	elif Input.is_action_just_pressed("ui_down"):
-		page_row = posmod(page_row + 1, 4)
+		page_row = posmod(page_row + 1, 5)
 	elif Input.is_action_just_pressed("steer_left"):
 		_adjust_option(-0.1)
 	elif Input.is_action_just_pressed("steer_right") or Input.is_action_just_pressed("ui_accept"):
@@ -142,7 +152,10 @@ func _adjust_option(step: float) -> void:
 				GameSettings.muted = not GameSettings.muted
 		3:
 			GameSettings.cycle_quality(1 if step > 0.0 else -1)
+		4:
+			GameSettings.toggle_skip()
 	GameSettings.save()
+	UiAudio.blip()
 
 
 func _refresh_page() -> void:
@@ -159,13 +172,17 @@ func _refresh_page() -> void:
 				"Efectos  %d%%" % GameSettings.sfx_percent(),
 				"Silencio  %s" % mute,
 				"Gráficos  %s" % GameSettings.quality_name(),
+				"Saltar intro  %s" % GameSettings.skip_name(),
 			]
 			rows[page_row] = "> " + rows[page_row]
 			_page_label.text = "Opciones\n\n%s\n\nA y D ajustan · clic también · Esc vuelve" % "\n".join(rows)
 
 
 func _on_menu_hover(index: int) -> void:
+	if selection == index:
+		return
 	selection = index
+	UiAudio.blip()
 	_paint()
 
 
@@ -185,6 +202,33 @@ func _on_page_click(event: InputEvent) -> void:
 		_refresh_page()
 
 
+func _mount_stage() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var stage := MenuStage.new()
+	stage.name = "MenuStage"
+	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(stage)
+	move_child(stage, 0)
+	var wash := get_node_or_null("Background") as ColorRect
+	if wash != null:
+		wash.color = Color(0.01, 0.015, 0.03, 0.42)
+
+
 func _paint() -> void:
 	for index in _options.size():
-		_options[index].modulate = Color(0.74, 0.96, 1) if index == selection else Color(0.95, 0.94, 0.9)
+		var lit := index == selection
+		var color := Color(0.74, 0.96, 1) if lit else Color(0.95, 0.94, 0.9)
+		color.a = _reveal
+		_options[index].modulate = color
+		_options[index].scale = Vector2.ONE * (1.04 if lit else 1.0)
+	if _accent == null and not _options.is_empty():
+		_accent = ColorRect.new()
+		_accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_accent.color = Color(0.74, 0.96, 1, 0.9)
+		_accent.size = Vector2(8, 28)
+		add_child(_accent)
+	if _accent != null and selection < _options.size():
+		var row := _options[selection]
+		_accent.global_position = row.global_position + Vector2(-28, 6)
+		_accent.modulate.a = _reveal
