@@ -26,6 +26,11 @@ func _ready() -> void:
 	_mount_stage()
 	_reveal = 0.0
 	_options = [%PlayLabel, %GarageLabel, %RecordsLabel, %OptionsLabel, %CreditsLabel, %QuitLabel]
+	_outline(%TitleLabel)
+	_outline(%StatusLabel)
+	_outline(get_node("HintLabel") as Label)
+	for option in _options:
+		_outline(option)
 	var state := Progress.load_state()
 	%StatusLabel.text = "Dinero %d cr · Récord %d" % [state.money, state.best_score]
 	_shade = ColorRect.new()
@@ -202,26 +207,23 @@ func _on_page_click(event: InputEvent) -> void:
 		_refresh_page()
 
 
+func _outline(label: Label) -> void:
+	if label == null:
+		return
+	label.add_theme_color_override("font_outline_color", Color(0.01, 0.015, 0.03, 0.92))
+	label.add_theme_constant_override("outline_size", 12)
+
+
 func _mount_stage() -> void:
 	if DisplayServer.get_name() == "headless":
 		return
+	GraphicsProfile.apply_viewport(get_viewport())
 	var stage := MenuStage.new()
 	stage.name = "MenuStage"
-	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(stage)
-	move_child(stage, 0)
 	var wash := get_node_or_null("Background") as ColorRect
 	if wash != null:
-		wash.color = Color(0.01, 0.015, 0.03, 0.12)
-	var scrim := ColorRect.new()
-	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	scrim.color = Color(0.015, 0.02, 0.035, 0.72)
-	scrim.anchor_right = 0.46
-	scrim.anchor_bottom = 1.0
-	scrim.offset_right = 0.0
-	scrim.offset_bottom = 0.0
-	add_child(scrim)
-	move_child(scrim, 1)
+		wash.visible = false
 
 
 func _paint() -> void:

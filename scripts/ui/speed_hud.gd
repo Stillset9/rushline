@@ -248,7 +248,7 @@ func _build_pace() -> void:
 	var lines := ColorRect.new()
 	lines.set_anchors_preset(Control.PRESET_FULL_RECT)
 	lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lines.color = Color(1, 1, 1, 1)
+	lines.color = Color(1, 1, 1, 0)
 	_lines_material = ShaderMaterial.new()
 	_lines_material.shader = preload("res://shaders/speed_lines.gdshader")
 	_lines_material.set_shader_parameter("strength", 0.0)

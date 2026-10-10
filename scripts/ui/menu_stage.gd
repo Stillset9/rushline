@@ -1,28 +1,17 @@
 class_name MenuStage
-extends SubViewportContainer
+extends Node3D
 
 var _car: Node3D
 var _spin := 0.0
 
 
 func _ready() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	stretch = true
-	stretch_shrink = 2 if OS.has_feature("web") else 1
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var view := SubViewport.new()
-	view.name = "View"
-	view.own_world_3d = true
-	view.transparent_bg = false
-	view.size = Vector2i(1280, 720)
-	view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	add_child(view)
-	var world := WorldEnvironment.new()
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_COLOR
 	environment.background_color = Color(0.02, 0.03, 0.06)
-	environment.ambient_light_energy = 0.45
+	environment.ambient_light_energy = 0.55
 	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
+	environment.adjustment_enabled = false
 	if DisplayServer.get_name() != "headless":
 		var sky_mat := ProceduralSkyMaterial.new()
 		sky_mat.sky_top_color = Color(0.05, 0.08, 0.16)
@@ -35,21 +24,22 @@ func _ready() -> void:
 		environment.sky = sky
 		environment.background_mode = Environment.BG_SKY
 		environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	var world := WorldEnvironment.new()
 	world.environment = environment
-	view.add_child(world)
+	add_child(world)
 	var sun := DirectionalLight3D.new()
 	sun.light_energy = 1.6
 	sun.light_color = Color(0.85, 0.92, 1.0)
 	sun.rotation_degrees = Vector3(-38, 30, 0)
 	sun.shadow_enabled = false
-	view.add_child(sun)
+	add_child(sun)
 	var fill := OmniLight3D.new()
 	fill.light_color = Color(0.45, 0.75, 1.0)
 	fill.light_energy = 2.2
 	fill.omni_range = 12.0
 	fill.position = Vector3(-2.2, 1.6, 3.0)
 	fill.shadow_enabled = false
-	view.add_child(fill)
+	add_child(fill)
 	var ground := MeshInstance3D.new()
 	var slab := BoxMesh.new()
 	slab.size = Vector3(24, 0.2, 16)
@@ -60,25 +50,19 @@ func _ready() -> void:
 	asphalt.roughness = 0.22
 	asphalt.metallic = 0.45
 	ground.material_override = asphalt
-	view.add_child(ground)
+	add_child(ground)
 	_car = preload("res://assets/vehicles/sports-car.glb").instantiate() as Node3D
-	view.add_child(_car)
+	add_child(_car)
 	_fit_car()
 	var camera := Camera3D.new()
-	camera.position = Vector3(-0.4, 1.45, 5.4)
-	camera.fov = 36.0
+	camera.position = Vector3(-1.1, 1.35, 5.8)
+	camera.fov = 34.0
 	camera.current = true
-	view.add_child(camera)
-	camera.look_at(Vector3(1.8, 0.5, 0.0), Vector3.UP)
+	add_child(camera)
+	camera.look_at(Vector3(2.4, 0.5, 0.0), Vector3.UP)
 
 
 func _process(delta: float) -> void:
-	if size.x < 8.0:
-		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		var view_size := get_viewport_rect().size
-		if view_size.x > 8.0:
-			position = Vector2.ZERO
-			size = view_size
 	if _car == null:
 		return
 	_spin += delta * 0.35
@@ -99,4 +83,4 @@ func _fit_car() -> void:
 		return
 	var factor := 4.2 / box.size.z
 	_car.scale = Vector3.ONE * factor
-	_car.position = Vector3(2.2, -box.position.y * factor, 0.15)
+	_car.position = Vector3(2.6, -box.position.y * factor, 0.15)

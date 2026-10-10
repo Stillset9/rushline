@@ -58,5 +58,7 @@ func run(tree: SceneTree) -> Array:
 	var graded := race.world.environment
 	if graded.adjustment_enabled:
 		failed.append("grade blackout")
+	if race.get_viewport().scaling_3d_mode == Viewport.SCALING_3D_MODE_FSR and not GraphicsProfile.fancy():
+		failed.append("fsr on compatibility")
 	race.queue_free()
 	return failed

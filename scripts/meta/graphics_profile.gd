@@ -137,12 +137,15 @@ static func apply_viewport(viewport: Viewport) -> void:
 	elif tier >= 2:
 		scale = 1.0
 	if web:
-		scale = minf(scale, 0.75)
+		scale = 1.0
 	viewport.scaling_3d_scale = scale
 	if web or tier == 0 or not fancy():
+		# FSR1 is Forward+ only. On Compatibility/WebGL it warns and can leave the 3D view black.
+		viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
 		viewport.msaa_3d = Viewport.MSAA_DISABLED
 		viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 	else:
+		viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR
 		viewport.msaa_3d = Viewport.MSAA_2X if tier >= 2 else Viewport.MSAA_DISABLED
 		viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 
@@ -206,7 +209,7 @@ static func _grade(environment: Environment, theme_id: String, night: bool) -> v
 static func tune_sun(sun: DirectionalLight3D) -> void:
 	if sun == null:
 		return
-	sun.shadow_enabled = rank() > 0 or fancy()
+	sun.shadow_enabled = not OS.has_feature("web") and (rank() > 0 or fancy())
 	sun.shadow_blur = 0.85 if rank() == 0 else 1.35
 	sun.directional_shadow_max_distance = 70.0 if rank() == 0 else (120.0 if rank() == 1 else 180.0)
 	sun.light_angular_distance = 0.35 if rank() >= 2 else 0.6

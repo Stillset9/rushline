@@ -159,6 +159,12 @@ static func sample(time_s: float) -> float:
 
 
 func _ready() -> void:
+	GraphicsProfile.apply_viewport(get_viewport())
+	if OS.has_feature("web") and _stage_host != null:
+		var view := _stage_host.get_node_or_null("StageView") as SubViewport
+		if view != null:
+			view.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		_stage_host.visible = false
 	theme = preload("res://ui/rushline_theme.tres")
 	_name_label.text = WORD
 	_presenta.text = "PRESENTA"
