@@ -31,6 +31,7 @@ func _ready() -> void:
 	_outline(get_node("HintLabel") as Label)
 	for option in _options:
 		_outline(option)
+	_compose_menu()
 	var state := Progress.load_state()
 	%StatusLabel.text = "Dinero %d cr · Récord %d" % [state.money, state.best_score]
 	_shade = ColorRect.new()
@@ -205,6 +206,55 @@ func _on_page_click(event: InputEvent) -> void:
 		var mid := _page_label.size.x * 0.5
 		_adjust_option(-0.1 if event.position.x < mid else 0.1)
 		_refresh_page()
+
+
+func _compose_menu() -> void:
+	var panel := ColorRect.new()
+	panel.name = "MenuPanel"
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.color = Color(0.015, 0.02, 0.035, 0.78)
+	panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	panel.offset_left = 28.0
+	panel.offset_top = 36.0
+	panel.offset_right = 560.0
+	panel.offset_bottom = 980.0
+	add_child(panel)
+	var accent := ColorRect.new()
+	accent.name = "MenuAccent"
+	accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	accent.color = Color(0.35, 0.82, 0.95, 0.92)
+	accent.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	accent.offset_left = 28.0
+	accent.offset_top = 36.0
+	accent.offset_right = 34.0
+	accent.offset_bottom = 980.0
+	add_child(accent)
+	var stage := get_node_or_null("MenuStage")
+	if stage != null:
+		move_child(panel, stage.get_index() + 1)
+		move_child(accent, panel.get_index() + 1)
+	_column(%TitleLabel, 64.0, 92.0, 58)
+	_column(%StatusLabel, 156.0, 40.0, 20)
+	var top := 250.0
+	for option in _options:
+		_column(option, top, 52.0, 30)
+		option.pivot_offset = Vector2(0.0, 26.0)
+		top += 62.0
+	_column(get_node("HintLabel") as Label, 860.0, 36.0, 16)
+	%QuitLabel.text = "Salir"
+
+
+func _column(label: Label, top: float, height: float, font_size: int) -> void:
+	if label == null:
+		return
+	label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	label.offset_left = 64.0
+	label.offset_top = top
+	label.offset_right = 520.0
+	label.offset_bottom = top + height
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_constant_override("outline_size", 8)
 
 
 func _outline(label: Label) -> void:

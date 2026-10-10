@@ -175,7 +175,7 @@ static func set_headlights(vehicle: Node3D, night: bool, spots: bool) -> void:
 	for node_name in ["HeadL", "HeadR"]:
 		var lamp := vehicle.get_node_or_null(node_name) as MeshInstance3D
 		if lamp != null and lamp.material_override is StandardMaterial3D:
-			(lamp.material_override as StandardMaterial3D).emission_energy_multiplier = 8.5 if night else 1.5
+			(lamp.material_override as StandardMaterial3D).emission_energy_multiplier = 0.85 if night else 0.35
 		var spot := vehicle.get_node_or_null(node_name + "Spot") as SpotLight3D
 		if spot != null:
 			spot.visible = night and spots
@@ -213,7 +213,6 @@ static func _lamp(parent: Node3D, node_name: String, at: Vector3, albedo: Color,
 	material.emission_enabled = true
 	material.emission = emission
 	material.emission_energy_multiplier = energy
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh_instance.material_override = material
 	parent.add_child(mesh_instance)
 	if not with_spot:
@@ -222,10 +221,10 @@ static func _lamp(parent: Node3D, node_name: String, at: Vector3, albedo: Color,
 	spot.name = node_name + "Spot"
 	spot.position = at
 	spot.rotation.y = PI
-	spot.spot_range = 34.0
-	spot.spot_angle = 22.0
-	spot.spot_attenuation = 0.7
-	spot.light_energy = 7.5
+	spot.spot_range = 22.0
+	spot.spot_angle = 18.0
+	spot.spot_attenuation = 1.1
+	spot.light_energy = 2.4
 	spot.light_color = Color(1.0, 0.93, 0.78)
 	spot.shadow_enabled = false
 	spot.visible = false

@@ -117,7 +117,7 @@ func _ready() -> void:
 	add_child(_skids)
 	var opening: Dictionary = Course.theme(int(StageRun.stage(0)["theme"]))
 	hud.show_banner("Etapa 1 · %s" % str(opening["name"]))
-	hud.present_controls(5.0)
+	hud.present_controls(4.0)
 	_apply_web_shot()
 
 
@@ -384,7 +384,7 @@ func _apply_world() -> void:
 	road.pressure = float(plan["pressure"])
 	var wet := GraphicsProfile.wet_strength(weather_id)
 	if bool(place.get("night", false)):
-		wet = maxf(wet, 0.62)
+		wet = maxf(wet, 0.28 if OS.has_feature("web") else 0.48)
 	road.wetness = wet
 	road.apply_palette(place["asphalt"], place["paint"])
 	street.apply_place(str(place["id"]))
@@ -400,11 +400,11 @@ func _apply_world() -> void:
 		_sky.set_night(night)
 	street.set_night(night)
 	if night:
-		sun.light_color = Color(0.78, 0.86, 1.0)
-		sun.light_energy = 1.15
-		fill.light_color = Color(0.62, 0.74, 1.0)
-		fill.light_energy = 0.62
-		_aim_celestial(0.42)
+		sun.light_color = Color(0.72, 0.8, 0.95)
+		sun.light_energy = 0.55 if OS.has_feature("web") else 0.85
+		fill.light_color = Color(0.55, 0.66, 0.9)
+		fill.light_energy = 0.28 if OS.has_feature("web") else 0.4
+		_aim_celestial(1.05)
 	else:
 		sun.light_color = Color(1.0, 0.95, 0.78)
 		sun.light_energy = 2.2
@@ -440,6 +440,8 @@ func _apply_web_shot() -> void:
 		stage_distance = 40.0
 		_apply_world()
 		hud.show_banner("Etapa 6 · Noche")
+	if "meta" in search:
+		_end_race("meta")
 
 
 func _rumble(weak: float, strong: float, seconds: float) -> void:

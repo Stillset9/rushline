@@ -6,8 +6,8 @@ const PATH := "user://settings.cfg"
 static var isolated := false
 const LEVELS: Array[String] = ["bajo", "medio", "alto"]
 
-static var music := 0.35
-static var sfx := 1.0
+static var music := 0.22
+static var sfx := 0.8
 static var muted := false
 static var quality := "medio"
 static var skip_intro := false

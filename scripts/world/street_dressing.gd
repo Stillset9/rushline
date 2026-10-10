@@ -64,9 +64,9 @@ func _ready() -> void:
 		lamp.shadow_enabled = false
 		lamp.omni_range = 24.0
 		lamp.omni_attenuation = 1.35
-		lamp.light_energy = 3.4
+		lamp.light_energy = 1.35
 		lamp.light_color = Color(1.0, 0.78, 0.48)
-		lamp.light_specular = 0.65
+		lamp.light_specular = 0.08
 		lamp.visible = false
 		add_child(lamp)
 		_lamps.append(lamp)
@@ -136,7 +136,8 @@ func _make_block(index: int) -> Node3D:
 	var heights: Array[float] = [14.0, 24.0, 11.0, 16.0, 28.0, 13.0]
 	for spot in spots.size():
 		var scene: PackedScene = BUILDINGS[(index + spot * 2) % BUILDINGS.size()]
-		_stand(city, scene, spots[spot], heights[spot], 0.0 if spots[spot].x > 0.0 else PI, false)
+		var facade := _stand(city, scene, spots[spot], heights[spot], 0.0 if spots[spot].x > 0.0 else PI, false)
+		_tone_facade(facade)
 	_neon(city, Vector3(-18.5, 7.2, 14.0), Color(0.15, 0.85, 1.0))
 	_neon(city, Vector3(18.8, 8.4, 28.0), Color(1.0, 0.28, 0.55))
 	_stand(city, TREE, Vector3(-17.4, 0.0, 18.0), 8.5, 0.4, true)
@@ -280,13 +281,14 @@ func _place_lamps(origin: float) -> void:
 
 
 func _neon(parent: Node3D, at: Vector3, color: Color) -> void:
-	var mesh_instance := _slab(parent, at, Vector3(3.4, 1.15, 0.18), color)
+	_slab(parent, at + Vector3(0.0, 0.0, 0.08), Vector3(3.7, 1.4, 0.08), Color(0.02, 0.02, 0.03))
+	var mesh_instance := _slab(parent, at, Vector3(3.2, 0.95, 0.06), color.darkened(0.35))
 	var material := mesh_instance.material_override as StandardMaterial3D
 	material.emission_enabled = true
 	material.emission = color
-	material.emission_energy_multiplier = 4.5
-	material.roughness = 0.25
-	material.metallic = 0.15
+	material.emission_energy_multiplier = 0.55
+	material.roughness = 0.4
+	material.metallic = 0.05
 
 
 func _clearance(node: Node3D) -> float:
@@ -338,7 +340,7 @@ func _fit(parent: Node3D, scene: PackedScene, center: Vector3, size: Vector3) ->
 	node.position = center - Vector3(bounds.get_center().x * node.scale.x, bounds.get_center().y * node.scale.y, bounds.get_center().z * node.scale.z)
 
 
-func _stand(parent: Node3D, scene: PackedScene, at: Vector3, height: float, yaw: float, matte: bool) -> void:
+func _stand(parent: Node3D, scene: PackedScene, at: Vector3, height: float, yaw: float, matte: bool) -> Node3D:
 	var node := scene.instantiate() as Node3D
 	parent.add_child(node)
 	var bounds := _bounds(node)
@@ -350,6 +352,24 @@ func _stand(parent: Node3D, scene: PackedScene, at: Vector3, height: float, yaw:
 	node.position = Vector3(at.x - rotated.x, -bounds.position.y * factor, at.z - rotated.z)
 	if matte:
 		_matte(node)
+	return node
+
+
+func _tone_facade(root: Node) -> void:
+	for node in root.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance.mesh == null:
+			continue
+		for surface in mesh_instance.mesh.get_surface_count():
+			var source := mesh_instance.mesh.surface_get_material(surface) as StandardMaterial3D
+			if source == null:
+				continue
+			var material := source.duplicate() as StandardMaterial3D
+			material.albedo_color = Color(0.55, 0.62, 0.72)
+			material.roughness = 0.78
+			material.metallic = 0.0
+			material.emission_enabled = false
+			mesh_instance.set_surface_override_material(surface, material)
 
 
 func _matte(root: Node) -> void:

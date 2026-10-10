@@ -20,11 +20,17 @@ var _gear_label: Label
 var _lines_material: ShaderMaterial
 var _blur_material: ShaderMaterial
 var _card: Control
+var _hint_chip: ColorRect
 var _banner: Label
 var _shade: ColorRect
+const CONTROL_HINT := "A D giran    ·    S frena    ·    Shift nitro    ·    Esc pausa"
+const CONTROL_LIST := "A D  giran\nS  frena\nShift  nitro\nQ  marcha"
+
 var _controls_s := 0.0
+var _controls_total := 4.0
 var _banner_s := 0.0
 var _paused_ui := false
+var _hint_mode := ""
 
 
 func _ready() -> void:
@@ -43,11 +49,19 @@ func _process(delta: float) -> void:
 		_banner.modulate.a = minf(life, intro)
 		_banner.scale = Vector2.ONE * lerpf(1.08, 1.0, intro)
 		_banner.visible = _banner_s > 0.0
-	if _card == null or _paused_ui:
-		return
-	if _controls_s > 0.0:
+	if _controls_s > 0.0 and not _paused_ui:
 		_controls_s = maxf(0.0, _controls_s - delta)
-	_card.visible = _controls_s > 0.0
+		if _hint_mode == "controls":
+			var fade_in := clampf((_controls_total - _controls_s) / 0.28, 0.0, 1.0)
+			var fade_out := clampf(_controls_s / 0.85, 0.0, 1.0)
+			var alpha := minf(fade_in, fade_out)
+			_hint_label.modulate.a = alpha
+			if _hint_chip != null:
+				_hint_chip.modulate.a = alpha
+		if _controls_s == 0.0 and _hint_mode == "controls":
+			show_hint("")
+	if _card != null and not _paused_ui:
+		_card.visible = false
 
 
 func _apply_font(node: Node, font_theme: Theme) -> void:
@@ -94,6 +108,11 @@ func show_score(score: int, multiplier: int) -> void:
 
 func show_finish(score: int, reason: String = "") -> void:
 	_finish_label.visible = true
+	_finish_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_finish_label.offset_left = -420.0
+	_finish_label.offset_top = 120.0
+	_finish_label.offset_right = 420.0
+	_finish_label.offset_bottom = 250.0
 	var title := "Fin"
 	if reason == "meta":
 		title = "Meta"
@@ -101,8 +120,12 @@ func show_finish(score: int, reason: String = "") -> void:
 		title = "Sin combustible"
 	_finish_label.text = "%s\n%s" % [title, format_score(score)]
 	_restart_hint.visible = true
+	if _card != null:
+		_card.visible = false
+	show_hint("")
 	if _shade != null:
 		_shade.visible = true
+		_shade.color.a = 0.62
 
 
 func show_fuel(fraction: float) -> void:
@@ -142,22 +165,38 @@ func show_pause(active: bool, row: int = 0) -> void:
 	_paused_ui = active
 	_pause_label.visible = active
 	if _card != null:
-		_card.visible = active or _controls_s > 0.0
+		_card.visible = false
+	if _shade != null and not _finish_label.visible:
+		_shade.visible = active
+		_shade.color.a = 0.5
 	if not active:
 		return
-	_pause_label.add_theme_font_size_override("font_size", 40)
+	_pause_label.add_theme_font_size_override("font_size", 32)
 	var follow := "> Seguir" if row == 0 else "  Seguir"
 	var home := "> Inicio" if row == 1 else "  Inicio"
-	_pause_label.text = "Pausa\n\n%s\n%s\n\nArriba y abajo · Enter o clic" % [follow, home]
+	_pause_label.text = "Pausa\n\n%s\n%s\n\n%s\n\nArriba y abajo · Enter" % [follow, home, CONTROL_LIST]
 
 
 func show_hint(text: String) -> void:
+	if text == "":
+		_hint_mode = ""
+	elif text != CONTROL_HINT:
+		_hint_mode = "event"
 	_hint_label.visible = text != ""
 	_hint_label.text = text
+	_hint_label.modulate.a = 1.0
+	if _hint_chip != null:
+		_hint_chip.visible = text != ""
+		_hint_chip.modulate.a = 1.0
 
 
 func show_standing(best: int, money: int, record: bool, distance_m: float = 0.0, elapsed_s: float = 0.0, crashes: int = 0) -> void:
 	_standing_label.visible = true
+	_standing_label.set_anchors_preset(Control.PRESET_CENTER)
+	_standing_label.offset_left = -380.0
+	_standing_label.offset_top = -20.0
+	_standing_label.offset_right = 380.0
+	_standing_label.offset_bottom = 240.0
 	var headline := "Nuevo récord" if record else "Récord %d" % best
 	var minutes := int(elapsed_s) / 60
 	var seconds := int(elapsed_s) % 60
@@ -174,9 +213,14 @@ func show_banner(text: String) -> void:
 
 
 func present_controls(seconds: float) -> void:
+	_controls_total = maxf(seconds, 0.2)
 	_controls_s = seconds
+	_hint_mode = "controls"
+	show_hint(CONTROL_HINT)
+	_hint_mode = "controls"
+	_hint_label.add_theme_font_size_override("font_size", 20)
 	if _card != null:
-		_card.visible = true
+		_card.visible = false
 
 
 func _build_fuel() -> void:
@@ -218,6 +262,20 @@ func _build_chrome() -> void:
 	_card = get_node_or_null("ControlCard")
 	if _card != null:
 		_card.visible = false
+	_hint_chip = ColorRect.new()
+	_hint_chip.name = "HintChip"
+	_hint_chip.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_hint_chip.offset_left = -430.0
+	_hint_chip.offset_top = -88.0
+	_hint_chip.offset_right = 430.0
+	_hint_chip.offset_bottom = -40.0
+	_hint_chip.color = Color(0.015, 0.02, 0.035, 0.72)
+	_hint_chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hint_chip.visible = false
+	add_child(_hint_chip)
+	var hint := get_node_or_null("HintLabel")
+	if hint != null:
+		move_child(_hint_chip, hint.get_index())
 	_shade = ColorRect.new()
 	_shade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_shade.color = Color(0.01, 0.015, 0.03, 0.62)

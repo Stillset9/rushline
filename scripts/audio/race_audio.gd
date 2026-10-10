@@ -64,7 +64,7 @@ func apply_speed(speed_mps: float) -> void:
 		return
 	var blend := clampf((speed_mps - PlayerController.MIN_SPEED_MPS) / (RaceDirector.SPEED_CAP_MPS - PlayerController.MIN_SPEED_MPS), 0.0, 1.0)
 	_engine.pitch_scale = pitch_for_speed(speed_mps)
-	_engine.volume_db = GameSettings.sfx_db(lerpf(-22.0, -10.0, blend))
+	_engine.volume_db = GameSettings.sfx_db(lerpf(-16.0, -8.0, blend))
 
 
 func play_hit() -> void:
@@ -100,7 +100,7 @@ func _player(node_name: String, stream: AudioStreamWAV, looping: bool) -> AudioS
 func _restart(player: AudioStreamPlayer) -> void:
 	if not _audible or player == null:
 		return
-	player.volume_db = GameSettings.sfx_db(-6.0)
+	player.volume_db = GameSettings.sfx_db(-8.0)
 	player.play()
 
 

@@ -12,18 +12,23 @@ var _night := false
 
 
 func _ready() -> void:
-	_sun = _orb(34.0, Color(1.0, 0.78, 0.22), 1.6)
-	_moon = _orb(22.0, Color(0.86, 0.9, 1.0), 1.3)
+	_sun = _orb(18.0, Color(1.0, 0.78, 0.22), 1.1)
+	_moon = _orb(8.0, Color(0.82, 0.86, 0.95), 0.7)
 	_stars = _star_field()
 	add_child(_stars)
-	var cloud_material := _cloud_material()
-	for index in 8:
+	var puff_count := 4 if OS.has_feature("web") else 6
+	for index in puff_count:
 		var cloud := MeshInstance3D.new()
-		var quad := QuadMesh.new()
-		quad.size = Vector2(70.0 + float(index % 3) * 24.0, 28.0 + float(index % 2) * 10.0)
-		cloud.mesh = quad
-		cloud.material_override = cloud_material
-		cloud.position = Vector3(-170.0 + float(index) * 48.0, 16.0 + float(index % 3) * 5.0, 100.0 + float(index % 4) * 28.0)
+		var puff := SphereMesh.new()
+		var radius := 14.0 + float(index % 3) * 4.0
+		puff.radius = radius
+		puff.height = radius * 1.35
+		puff.radial_segments = 10
+		puff.rings = 6
+		cloud.mesh = puff
+		cloud.material_override = _cloud_material()
+		cloud.position = Vector3(-140.0 + float(index) * 58.0, 42.0 + float(index % 2) * 8.0, 160.0 + float(index % 3) * 24.0)
+		cloud.scale = Vector3(1.8, 0.55, 1.0)
 		add_child(cloud)
 		_clouds.append(cloud)
 	set_night(false)
@@ -83,13 +88,13 @@ func _star_field() -> MultiMeshInstance3D:
 	var field := MultiMeshInstance3D.new()
 	var multi := MultiMesh.new()
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.85
-	sphere.height = 1.7
+	sphere.radius = 0.35
+	sphere.height = 0.7
 	sphere.radial_segments = 6
 	sphere.rings = 4
 	multi.mesh = sphere
 	multi.transform_format = MultiMesh.TRANSFORM_3D
-	multi.instance_count = 90
+	multi.instance_count = 36 if OS.has_feature("web") else 70
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 41
 	for index in multi.instance_count:
@@ -103,15 +108,17 @@ func _star_field() -> MultiMeshInstance3D:
 	material.albedo_color = Color(0.95, 0.96, 1.0)
 	material.emission_enabled = true
 	material.emission = Color(0.95, 0.96, 1.0)
-	material.emission_energy_multiplier = 3.0
+	material.emission_energy_multiplier = 0.8
 	field.material_override = material
 	field.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return field
 
 
-func _cloud_material() -> ShaderMaterial:
-	var shader := Shader.new()
-	shader.code = "shader_type spatial;\nrender_mode unshaded, blend_mix, depth_draw_never, cull_disabled;\nvoid fragment() {\n\tvec2 p = UV * 2.0 - 1.0;\n\tfloat disc = smoothstep(1.0, 0.25, length(p));\n\tALBEDO = vec3(1.0, 1.0, 1.0);\n\tALPHA = disc * 0.92;\n}\n"
-	var material := ShaderMaterial.new()
-	material.shader = shader
+func _cloud_material() -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(0.75, 0.8, 0.88, 0.22)
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.disable_receive_shadows = true
 	return material

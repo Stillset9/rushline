@@ -137,7 +137,7 @@ static func apply_viewport(viewport: Viewport) -> void:
 	elif tier >= 2:
 		scale = 1.0
 	if web:
-		scale = 1.0
+		scale = 0.8
 	viewport.scaling_3d_scale = scale
 	if web or tier == 0 or not fancy():
 		# FSR1 is Forward+ only. On Compatibility/WebGL it warns and can leave the 3D view black.
