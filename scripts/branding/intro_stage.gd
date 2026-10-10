@@ -32,9 +32,6 @@ func logo_count() -> int:
 
 
 func _ready() -> void:
-	# The intro viewport copies its texture with a GPU readback on WebGL. The flat titles already cover web.
-	if OS.has_feature("web"):
-		return
 	_build_world()
 	_build_lights()
 	_build_atmosphere()

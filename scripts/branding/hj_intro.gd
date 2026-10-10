@@ -160,11 +160,8 @@ static func sample(time_s: float) -> float:
 
 func _ready() -> void:
 	GraphicsProfile.apply_viewport(get_viewport())
-	if OS.has_feature("web") and _stage_host != null:
-		var view := _stage_host.get_node_or_null("StageView") as SubViewport
-		if view != null:
-			view.render_target_update_mode = SubViewport.UPDATE_DISABLED
-		_stage_host.visible = false
+	if OS.has_feature("web"):
+		_show_stage_in_main_view()
 	theme = preload("res://ui/rushline_theme.tres")
 	_name_label.text = WORD
 	_presenta.text = "PRESENTA"
@@ -187,6 +184,27 @@ func _ready() -> void:
 	GameSettings.load_state()
 	if auto_change_scene and GameSettings.skip_intro:
 		call_deferred("_leave")
+
+
+func _show_stage_in_main_view() -> void:
+	# A SubViewport on WebGL is copied with glReadPixels every frame. The logo stays in the main view instead.
+	if _stage_host == null or _stage == null:
+		return
+	var view := _stage_host.get_node_or_null("StageView") as SubViewport
+	if view != null:
+		view.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	var stage := _stage as Node
+	if stage.get_parent() != self:
+		stage.get_parent().remove_child(stage)
+		add_child(stage)
+		move_child(stage, 0)
+	for child in stage.get_children():
+		if child is Camera3D:
+			(child as Camera3D).current = true
+	_stage_host.visible = false
+	var background := get_node_or_null("Background") as CanvasItem
+	if background != null:
+		background.visible = false
 
 
 func request_skip() -> void:
