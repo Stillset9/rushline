@@ -59,7 +59,7 @@ func _ready() -> void:
 	add_child(_car)
 	_fit_car()
 	_camera = Camera3D.new()
-	_camera.fov = 32.0
+	_camera.fov = 34.0
 	_camera.current = true
 	add_child(_camera)
 	_frame_camera(0.0)
@@ -75,21 +75,27 @@ func _process(delta: float) -> void:
 
 
 func _frame_camera(sway: float) -> void:
-	if _camera == null:
+	if _camera == null or _car == null:
 		return
-	_camera.position = Vector3(-0.35 + sin(sway) * 0.08, 1.22, 6.6)
-	_camera.look_at(Vector3(0.15, 0.58, 0.05), Vector3.UP)
+	var focus := _car.position + Vector3(0.0, 0.42, 0.0)
+	_camera.position = focus + Vector3(-2.05 + sin(sway) * 0.05, 1.05, 7.8)
+	_camera.look_at(focus + Vector3(-0.42, 0.02, 0.0), Vector3.UP)
 
 
 func _garage() -> void:
-	_slab(Vector3(2.2, -0.04, 0.4), Vector3(28.0, 0.08, 18.0), Color(0.07, 0.08, 0.1))
-	_slab(Vector3(2.4, 2.4, -6.2), Vector3(22.0, 5.2, 0.4), Color(0.09, 0.11, 0.16))
-	_slab(Vector3(11.5, 2.2, 0.2), Vector3(0.4, 4.8, 16.0), Color(0.08, 0.1, 0.14))
-	var strip := _slab(Vector3(2.2, 0.02, 0.4), Vector3(2.4, 0.02, 7.5), Color(0.2, 0.55, 0.7))
+	var floor := _slab(Vector3(0.6, -0.04, 0.2), Vector3(28.0, 0.08, 18.0), Color(0.035, 0.038, 0.045))
+	var floor_paint := floor.material_override as StandardMaterial3D
+	floor_paint.roughness = 0.24
+	floor_paint.metallic = 0.38
+	floor_paint.metallic_specular = 0.45
+	_slab(Vector3(0.8, 2.4, -6.4), Vector3(22.0, 5.2, 0.4), Color(0.07, 0.08, 0.11))
+	_slab(Vector3(8.4, 2.2, 0.2), Vector3(0.35, 4.6, 16.0), Color(0.06, 0.07, 0.09))
+	var strip := _slab(Vector3(0.55, 0.012, 0.15), Vector3(0.07, 0.012, 6.2), Color(0.05, 0.08, 0.1))
 	var paint := strip.material_override as StandardMaterial3D
 	paint.emission_enabled = true
-	paint.emission = Color(0.25, 0.7, 0.9)
-	paint.emission_energy_multiplier = 0.45
+	paint.emission = Color(0.28, 0.62, 0.78)
+	paint.emission_energy_multiplier = 0.22
+	paint.roughness = 0.4
 
 
 func _slab(at: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
@@ -121,4 +127,4 @@ func _fit_car() -> void:
 		return
 	var factor := 3.6 / box.size.z
 	_car.scale = Vector3.ONE * factor
-	_car.position = Vector3(1.85, -box.position.y * factor, 0.15)
+	_car.position = Vector3(0.55, -box.position.y * factor, 0.1)

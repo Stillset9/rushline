@@ -170,7 +170,7 @@ func _refresh_page() -> void:
 		"records":
 			_page_label.text = "Récords\n\nMejor puntaje  %d\nCarreras  %d\nEtapa  %d/%d\nDinero  %d cr\n\nEsc vuelve" % [state.best_score, state.races, state.best_stage, StageRun.count(), state.money]
 		"creditos":
-			_page_label.text = "RUSHLINE\nHJgames\n\nLlega a la meta de cada etapa sin quedarte sin combustible.\nLos bidones amarillos recargan y suman puntos.\n\nAutos de Grab3D, licencia CC0\nCiudad y naturaleza de Kenney, CC0\nMúsica: Pure Raceway, MintoDog, CC0\nTipografía: Orbitron, OFL\nBidones, vallas, efectos y sonido de intro originales\n\nEsc vuelve"
+			_page_label.text = "RUSHLINE\nHJgames\n\nLlega a la meta de cada etapa sin quedarte sin combustible.\nLos bidones amarillos recargan y suman puntos.\n\nAutos de Grab3D, licencia CC0\nCiudad y naturaleza de Kenney, CC0\nMúsica: Pure Raceway, MintoDog, CC0\nTipografía: Orbitron y Noto Sans, OFL\nBidones, vallas, efectos y sonido de intro originales\n\nEsc vuelve"
 		"opciones":
 			var mute := "Sí" if GameSettings.muted else "No"
 			var rows := [

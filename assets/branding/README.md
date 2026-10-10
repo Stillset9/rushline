@@ -19,6 +19,7 @@ Esc, Start o A la omiten. M alterna el silencio guardado en las opciones. En la 
 | Archivo | Origen | Licencia |
 | --- | --- | --- |
 | `Orbitron-Variable.ttf` | [Google Fonts / Orbitron](https://fonts.google.com/specimen/Orbitron), proyecto [theleagueof/orbitron](https://github.com/theleagueof/orbitron) | SIL OFL 1.1, texto completo en `OFL.txt`. Uso comercial y en videojuegos permitido. |
+| `NotoSans-Regular.ttf` | [Google Noto Sans](https://fonts.google.com/noto/specimen/Noto+Sans) | SIL OFL 1.1, aviso en `NotoSans-OFL.txt`. Respaldo de la interfaz para signos que Orbitron no dibuja. |
 | Sonido | Generado en `scripts/branding/hj_intro.gd` | Original. No se descargó audio de Freesound ni de Mixkit. |
 
 La escena es `scenes/branding/HJGamesIntro.tscn`. El escenario 3D está en `scripts/branding/intro_stage.gd` y el polvo en `scripts/branding/intro_dust.gd`.

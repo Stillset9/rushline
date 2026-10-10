@@ -70,6 +70,6 @@ func refresh() -> void:
 		var upgrade_id := ROWS[index]
 		var price := progress.cost_for(upgrade_id)
 		var price_text := "al máximo" if price < 0 else "%d cr" % price
-		var mark := "▸ " if index == selection else "  "
+		var mark := "> " if index == selection else "  "
 		_rows[index].text = "%s%s  %d/%d  %s" % [mark, NAMES[upgrade_id], progress.level(upgrade_id), Progress.MAX_LEVEL, price_text]
 		_rows[index].modulate = Color(0.74, 0.96, 1) if index == selection else Color(0.95, 0.94, 0.9)
