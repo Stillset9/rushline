@@ -433,8 +433,10 @@ func _apply_web_shot() -> void:
 		return
 	var search := ""
 	if ClassDB.class_exists("JavaScriptBridge"):
-		var raw: Variant = JavaScriptBridge.eval("window.location.search", true)
-		search = str(raw)
+		var window: Variant = JavaScriptBridge.get_interface("window")
+		if window != null:
+			var location: Variant = window.location
+			search = str(location.search)
 	if "noche" in search:
 		stage_index = 5
 		stage_distance = 40.0

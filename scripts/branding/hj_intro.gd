@@ -169,9 +169,14 @@ func _ready() -> void:
 	_title_word.pivot_offset = Vector2(760, 80)
 	var face: Font = _stage.word_font()
 	if face != null:
-		_name_label.add_theme_font_override("font", face)
-		_presenta.add_theme_font_override("font", face)
-		_title_word.add_theme_font_override("font", face)
+		var covered := FontVariation.new()
+		covered.base_font = face
+		var theme_font := theme.default_font as FontVariation
+		if theme_font != null:
+			covered.fallbacks = theme_font.fallbacks
+		_name_label.add_theme_font_override("font", covered)
+		_presenta.add_theme_font_override("font", covered)
+		_title_word.add_theme_font_override("font", covered)
 	_glint = ColorRect.new()
 	_glint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_glint.color = Color(1, 1, 1, 0.0)

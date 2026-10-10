@@ -57,9 +57,9 @@ func _ready() -> void:
 	add_child(rim)
 	var wash := OmniLight3D.new()
 	wash.light_color = Color(0.78, 0.86, 0.96)
-	wash.light_energy = 2.4
+	wash.light_energy = 1.05
 	wash.omni_range = 8.0
-	wash.position = Vector3(0.35, 1.15, 2.8)
+	wash.position = Vector3(0.35, 1.55, 3.4)
 	wash.shadow_enabled = false
 	add_child(wash)
 	_car = preload("res://assets/vehicles/sports-car.glb").instantiate() as Node3D
@@ -90,23 +90,23 @@ func _frame_camera(sway: float) -> void:
 
 
 func _garage() -> void:
-	var floor := _slab(Vector3(0.6, -0.04, 0.2), Vector3(28.0, 0.08, 18.0), Color(0.16, 0.17, 0.19))
+	var floor := _slab(Vector3(0.6, -0.04, 0.2), Vector3(28.0, 0.08, 18.0), Color(0.2, 0.21, 0.23))
 	var floor_paint := floor.material_override as StandardMaterial3D
-	floor_paint.roughness = 0.34
-	floor_paint.metallic = 0.22
-	floor_paint.metallic_specular = 0.62
+	floor_paint.roughness = 0.92
+	floor_paint.metallic = 0.0
+	floor_paint.metallic_specular = 0.12
 	_seam(Vector3(0.55, 0.006, -1.7), Vector3(16.0, 0.014, 0.045))
 	_seam(Vector3(0.55, 0.006, 2.0), Vector3(16.0, 0.014, 0.045))
 	_seam(Vector3(-2.4, 0.006, 0.15), Vector3(0.045, 0.014, 11.0))
 	_seam(Vector3(3.4, 0.006, 0.15), Vector3(0.045, 0.014, 11.0))
 	_slab(Vector3(0.8, 2.4, -6.4), Vector3(22.0, 5.2, 0.4), Color(0.09, 0.1, 0.13))
 	_slab(Vector3(8.4, 2.2, 0.2), Vector3(0.35, 4.6, 16.0), Color(0.08, 0.09, 0.11))
-	var strip := _slab(Vector3(0.55, 0.02, 0.15), Vector3(0.14, 0.02, 9.4), Color(0.1, 0.16, 0.2))
+	var strip := _slab(Vector3(0.55, 0.018, 0.15), Vector3(0.055, 0.012, 8.2), Color(0.1, 0.16, 0.2))
 	var paint := strip.material_override as StandardMaterial3D
 	paint.emission_enabled = true
-	paint.emission = Color(0.62, 0.86, 0.98)
-	paint.emission_energy_multiplier = 2.2
-	paint.roughness = 0.35
+	paint.emission = Color(0.42, 0.78, 0.92)
+	paint.emission_energy_multiplier = 0.85
+	paint.roughness = 0.55
 
 
 func _seam(at: Vector3, size: Vector3) -> void:
