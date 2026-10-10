@@ -55,6 +55,13 @@ func _ready() -> void:
 	rim.position = Vector3(3.4, 1.2, -2.2)
 	rim.shadow_enabled = false
 	add_child(rim)
+	var wash := OmniLight3D.new()
+	wash.light_color = Color(0.78, 0.86, 0.96)
+	wash.light_energy = 2.4
+	wash.omni_range = 8.0
+	wash.position = Vector3(0.35, 1.15, 2.8)
+	wash.shadow_enabled = false
+	add_child(wash)
 	_car = preload("res://assets/vehicles/sports-car.glb").instantiate() as Node3D
 	add_child(_car)
 	_fit_car()
@@ -83,19 +90,30 @@ func _frame_camera(sway: float) -> void:
 
 
 func _garage() -> void:
-	var floor := _slab(Vector3(0.6, -0.04, 0.2), Vector3(28.0, 0.08, 18.0), Color(0.035, 0.038, 0.045))
+	var floor := _slab(Vector3(0.6, -0.04, 0.2), Vector3(28.0, 0.08, 18.0), Color(0.16, 0.17, 0.19))
 	var floor_paint := floor.material_override as StandardMaterial3D
-	floor_paint.roughness = 0.24
-	floor_paint.metallic = 0.38
-	floor_paint.metallic_specular = 0.45
-	_slab(Vector3(0.8, 2.4, -6.4), Vector3(22.0, 5.2, 0.4), Color(0.07, 0.08, 0.11))
-	_slab(Vector3(8.4, 2.2, 0.2), Vector3(0.35, 4.6, 16.0), Color(0.06, 0.07, 0.09))
-	var strip := _slab(Vector3(0.55, 0.012, 0.15), Vector3(0.07, 0.012, 6.2), Color(0.05, 0.08, 0.1))
+	floor_paint.roughness = 0.34
+	floor_paint.metallic = 0.22
+	floor_paint.metallic_specular = 0.62
+	_seam(Vector3(0.55, 0.006, -1.7), Vector3(16.0, 0.014, 0.045))
+	_seam(Vector3(0.55, 0.006, 2.0), Vector3(16.0, 0.014, 0.045))
+	_seam(Vector3(-2.4, 0.006, 0.15), Vector3(0.045, 0.014, 11.0))
+	_seam(Vector3(3.4, 0.006, 0.15), Vector3(0.045, 0.014, 11.0))
+	_slab(Vector3(0.8, 2.4, -6.4), Vector3(22.0, 5.2, 0.4), Color(0.09, 0.1, 0.13))
+	_slab(Vector3(8.4, 2.2, 0.2), Vector3(0.35, 4.6, 16.0), Color(0.08, 0.09, 0.11))
+	var strip := _slab(Vector3(0.55, 0.02, 0.15), Vector3(0.14, 0.02, 9.4), Color(0.1, 0.16, 0.2))
 	var paint := strip.material_override as StandardMaterial3D
 	paint.emission_enabled = true
-	paint.emission = Color(0.28, 0.62, 0.78)
-	paint.emission_energy_multiplier = 0.22
-	paint.roughness = 0.4
+	paint.emission = Color(0.62, 0.86, 0.98)
+	paint.emission_energy_multiplier = 2.2
+	paint.roughness = 0.35
+
+
+func _seam(at: Vector3, size: Vector3) -> void:
+	var seam := _slab(at, size, Color(0.07, 0.075, 0.085))
+	var paint := seam.material_override as StandardMaterial3D
+	paint.roughness = 0.55
+	paint.metallic = 0.08
 
 
 func _slab(at: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
