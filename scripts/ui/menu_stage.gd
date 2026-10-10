@@ -49,10 +49,10 @@ func _ready() -> void:
 	key.shadow_enabled = false
 	add_child(key)
 	var rim := OmniLight3D.new()
-	rim.light_color = Color(1.0, 0.45, 0.62)
-	rim.light_energy = 1.1
-	rim.omni_range = 7.0
-	rim.position = Vector3(4.6, 1.4, -1.6)
+	rim.light_color = Color(0.95, 0.55, 0.7)
+	rim.light_energy = 0.45
+	rim.omni_range = 6.0
+	rim.position = Vector3(3.4, 1.2, -2.2)
 	rim.shadow_enabled = false
 	add_child(rim)
 	_car = preload("res://assets/vehicles/sports-car.glb").instantiate() as Node3D
@@ -77,14 +77,14 @@ func _process(delta: float) -> void:
 func _frame_camera(sway: float) -> void:
 	if _camera == null:
 		return
-	_camera.position = Vector3(-1.55 + sin(sway) * 0.12, 1.15, 6.4)
-	_camera.look_at(Vector3(2.15, 0.62, 0.1), Vector3.UP)
+	_camera.position = Vector3(-0.35 + sin(sway) * 0.08, 1.22, 6.6)
+	_camera.look_at(Vector3(0.15, 0.58, 0.05), Vector3.UP)
 
 
 func _garage() -> void:
 	_slab(Vector3(2.2, -0.04, 0.4), Vector3(28.0, 0.08, 18.0), Color(0.07, 0.08, 0.1))
 	_slab(Vector3(2.4, 2.4, -6.2), Vector3(22.0, 5.2, 0.4), Color(0.09, 0.11, 0.16))
-	_slab(Vector3(8.6, 2.2, 0.2), Vector3(0.4, 4.8, 14.0), Color(0.08, 0.1, 0.14))
+	_slab(Vector3(11.5, 2.2, 0.2), Vector3(0.4, 4.8, 16.0), Color(0.08, 0.1, 0.14))
 	var strip := _slab(Vector3(2.2, 0.02, 0.4), Vector3(2.4, 0.02, 7.5), Color(0.2, 0.55, 0.7))
 	var paint := strip.material_override as StandardMaterial3D
 	paint.emission_enabled = true
@@ -121,4 +121,4 @@ func _fit_car() -> void:
 		return
 	var factor := 3.6 / box.size.z
 	_car.scale = Vector3.ONE * factor
-	_car.position = Vector3(2.35, -box.position.y * factor, 0.2)
+	_car.position = Vector3(1.85, -box.position.y * factor, 0.15)

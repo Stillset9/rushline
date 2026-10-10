@@ -21,6 +21,7 @@ var _lines_material: ShaderMaterial
 var _blur_material: ShaderMaterial
 var _card: Control
 var _hint_chip: ColorRect
+var _results_panel: ColorRect
 var _banner: Label
 var _shade: ColorRect
 const CONTROL_HINT := "A D giran    ·    S frena    ·    Shift nitro    ·    Esc pausa"
@@ -191,16 +192,25 @@ func show_hint(text: String) -> void:
 
 
 func show_standing(best: int, money: int, record: bool, distance_m: float = 0.0, elapsed_s: float = 0.0, crashes: int = 0) -> void:
+	if _results_panel != null:
+		_results_panel.visible = true
 	_standing_label.visible = true
 	_standing_label.set_anchors_preset(Control.PRESET_CENTER)
 	_standing_label.offset_left = -380.0
-	_standing_label.offset_top = -20.0
+	_standing_label.offset_top = -10.0
 	_standing_label.offset_right = 380.0
-	_standing_label.offset_bottom = 240.0
+	_standing_label.offset_bottom = 250.0
+	_standing_label.add_theme_font_size_override("font_size", 32)
+	_standing_label.add_theme_color_override("font_color", Color(0.9, 0.96, 1.0))
 	var headline := "Nuevo récord" if record else "Récord %d" % best
 	var minutes := int(elapsed_s) / 60
 	var seconds := int(elapsed_s) % 60
 	_standing_label.text = "Distancia  %d m\nTiempo  %d:%02d\nChoques  %d\n%s\nDinero  %d cr" % [int(distance_m), minutes, seconds, crashes, headline, money]
+	move_child(_standing_label, get_child_count() - 1)
+	if _finish_label.visible:
+		move_child(_finish_label, get_child_count() - 1)
+	if _restart_hint.visible:
+		move_child(_restart_hint, get_child_count() - 1)
 
 
 func show_banner(text: String) -> void:
@@ -273,6 +283,17 @@ func _build_chrome() -> void:
 	_hint_chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hint_chip.visible = false
 	add_child(_hint_chip)
+	_results_panel = ColorRect.new()
+	_results_panel.name = "ResultsPanel"
+	_results_panel.set_anchors_preset(Control.PRESET_CENTER)
+	_results_panel.offset_left = -460.0
+	_results_panel.offset_top = -80.0
+	_results_panel.offset_right = 460.0
+	_results_panel.offset_bottom = 300.0
+	_results_panel.color = Color(0.015, 0.02, 0.04, 0.9)
+	_results_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_results_panel.visible = false
+	add_child(_results_panel)
 	var hint := get_node_or_null("HintLabel")
 	if hint != null:
 		move_child(_hint_chip, hint.get_index())

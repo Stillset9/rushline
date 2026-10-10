@@ -229,10 +229,10 @@ func _compose_menu() -> void:
 	accent.offset_right = 34.0
 	accent.offset_bottom = 980.0
 	add_child(accent)
-	var stage := get_node_or_null("MenuStage")
-	if stage != null:
-		move_child(panel, stage.get_index() + 1)
-		move_child(accent, panel.get_index() + 1)
+	var title := get_node_or_null("TitleLabel")
+	if title != null:
+		move_child(panel, title.get_index())
+		move_child(accent, title.get_index())
 	_column(%TitleLabel, 64.0, 92.0, 58)
 	_column(%StatusLabel, 156.0, 40.0, 20)
 	var top := 250.0
@@ -260,8 +260,8 @@ func _column(label: Label, top: float, height: float, font_size: int) -> void:
 func _outline(label: Label) -> void:
 	if label == null:
 		return
-	label.add_theme_color_override("font_outline_color", Color(0.01, 0.015, 0.03, 0.92))
-	label.add_theme_constant_override("outline_size", 12)
+	label.add_theme_color_override("font_outline_color", Color(0.01, 0.015, 0.03, 0.95))
+	label.add_theme_constant_override("outline_size", 6)
 
 
 func _mount_stage() -> void:
