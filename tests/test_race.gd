@@ -105,7 +105,8 @@ func _hit_episode(tree: SceneTree) -> Array:
 		failed.append("second speed %s" % player.speed_mps)
 	if race.finished:
 		failed.append("ended too soon")
-	race.distance_m = Course.STAGE_M
+	race.stage_index = StageRun.count() - 1
+	race.stage_distance = float(StageRun.stage(race.stage_index)["length"])
 	race.close_if_done()
 	if not race.finished:
 		failed.append("stage open")
@@ -123,19 +124,21 @@ func _finish_episode(tree: SceneTree) -> Array:
 	race.set_process(false)
 	var player: PlayerController = race.get_node("PlayerVehicle")
 	player.speed_mps = 30.0
+	race.fuel.amount = FuelTank.CRASH_COST
 	var traffic: TrafficManager = race.get_node("TrafficManager")
-	for index in RaceDirector.HITS_TO_END:
-		var vehicle: TrafficVehicle = traffic.vehicles()[index]
-		vehicle.activate(1, player.global_position, StandardMaterial3D.new(), 1.0)
+	var vehicle: TrafficVehicle = traffic.vehicles()[0]
+	vehicle.activate(1, player.global_position, StandardMaterial3D.new(), 1.0)
 	race.simulate(0.05)
-	if not race.finished or race.crashes < RaceDirector.HITS_TO_END:
-		failed.append("not finished %s crashes %s" % [race.finished, race.crashes])
+	if not race.finished or race.finish_reason != "sin_combustible":
+		failed.append("not finished %s %s" % [race.finished, race.finish_reason])
 	var frozen_z := player.position.z
 	var frozen_score: float = race.score_keeper.score
 	var frozen_distance: float = race.distance_m
 	var finish_label: Label = race.get_node("SpeedHud/FinishLabel")
-	if not finish_label.visible or finish_label.text != "Fin\n%s" % SpeedHud.format_score(RaceDirector.displayed_score(frozen_score)):
+	if not finish_label.visible or not finish_label.text.begins_with("Sin combustible"):
 		failed.append("finish label %s" % finish_label.text)
+	if not finish_label.text.ends_with(SpeedHud.format_score(RaceDirector.displayed_score(frozen_score))):
+		failed.append("finish score %s" % finish_label.text)
 	var hint: Label = race.get_node("SpeedHud/RestartHint")
 	if not hint.visible or hint.text != "Enter, Start o A para otra vez":
 		failed.append("restart hint %s" % hint.text)

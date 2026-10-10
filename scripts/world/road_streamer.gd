@@ -7,6 +7,8 @@ const RECYCLE_BEHIND := 20.0
 
 const CHUNK_SCENE := preload("res://scenes/world/road_chunk.tscn")
 
+var pressure := 0.18
+var wetness := 0.0
 var _chunks: Array[Node3D] = []
 var _origins: Array[float] = []
 
@@ -53,6 +55,13 @@ func setup(player_z: float) -> void:
 
 func tick(player_z: float) -> void:
 	_apply(recycle_origins(origins(), player_z))
+	for index in _chunks.size():
+		var chunk := _chunks[index] as RoadChunk
+		if chunk == null:
+			continue
+		var half := StageRun.playable_half(_origins[index] + CHUNK_LENGTH * 0.5, pressure)
+		chunk.set_playable(half)
+		chunk.apply_wet(wetness)
 
 
 func origins() -> Array[float]:

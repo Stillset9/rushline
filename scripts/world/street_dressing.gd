@@ -44,6 +44,7 @@ const GROUND := {
 }
 
 const ROAD_CLEAR := 17.0
+const TOWER_CLEAR := 28.0
 
 var _blocks: Array[Node3D] = []
 var _fill: MeshInstance3D
@@ -201,7 +202,8 @@ func blocks_road() -> bool:
 				var box := node.transform * local
 				var min_x := box.position.x
 				var max_x := box.position.x + box.size.x
-				if min_x < ROAD_CLEAR and max_x > -ROAD_CLEAR:
+				var clear := _clearance(node)
+				if min_x < clear and max_x > -clear:
 					return true
 	return false
 
@@ -227,12 +229,20 @@ func _keep_off_road(node: Node3D) -> void:
 	var box := node.transform * local
 	var min_x := box.position.x
 	var max_x := box.position.x + box.size.x
-	if min_x >= ROAD_CLEAR or max_x <= -ROAD_CLEAR:
+	var clear := _clearance(node)
+	if min_x >= clear or max_x <= -clear:
 		return
 	if node.position.x >= 0.0:
-		node.position.x += ROAD_CLEAR - min_x
+		node.position.x += clear - min_x
 	else:
-		node.position.x -= max_x + ROAD_CLEAR
+		node.position.x -= max_x + clear
+
+
+func _clearance(node: Node3D) -> float:
+	var local := _bounds(node)
+	if local.size.y >= 18.0:
+		return TOWER_CLEAR
+	return ROAD_CLEAR
 
 
 func _group(parent: Node3D, node_name: String) -> Node3D:

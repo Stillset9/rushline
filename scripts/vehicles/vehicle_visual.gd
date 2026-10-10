@@ -26,7 +26,7 @@ static func build(parent: Node3D, model: PackedScene = null, with_boost: bool = 
 		root.free()
 	else:
 		root.name = "Model"
-	_lamps(parent, body)
+	_lamps(parent, body, with_boost)
 	if with_boost:
 		_boost_fx(parent, body)
 		_impact(parent)
@@ -41,8 +41,9 @@ static func paint(body: MeshInstance3D, color: Color) -> void:
 	else:
 		material.roughness = 0.22
 		material.metallic = 0.42
+	if _clearcoat_ok():
 		material.clearcoat_enabled = true
-		material.clearcoat = 0.65
+		material.clearcoat = 0.55
 		material.clearcoat_roughness = 0.18
 	material.albedo_color = color
 	body.material_override = material
@@ -164,19 +165,37 @@ static func _shell_point(body: MeshInstance3D, local: Vector3) -> Vector3:
 	return body.transform * local
 
 
-static func _lamps(parent: Node3D, body: MeshInstance3D) -> void:
+static func set_headlights(vehicle: Node3D, night: bool, spots: bool) -> void:
+	for node_name in ["HeadL", "HeadR"]:
+		var lamp := vehicle.get_node_or_null(node_name) as MeshInstance3D
+		if lamp != null and lamp.material_override is StandardMaterial3D:
+			(lamp.material_override as StandardMaterial3D).emission_energy_multiplier = 8.5 if night else 1.5
+		var spot := vehicle.get_node_or_null(node_name + "Spot") as SpotLight3D
+		if spot != null:
+			spot.visible = night and spots
+	for node_name in ["TailL", "TailR"]:
+		var lamp := vehicle.get_node_or_null(node_name) as MeshInstance3D
+		if lamp != null and lamp.material_override is StandardMaterial3D:
+			(lamp.material_override as StandardMaterial3D).emission_energy_multiplier = 2.4 if night else 0.7
+
+
+static func _clearcoat_ok() -> bool:
+	return DisplayServer.get_name() != "headless" and RenderingServer.get_current_rendering_method() == "forward_plus" and not OS.has_feature("web")
+
+
+static func _lamps(parent: Node3D, body: MeshInstance3D, with_spots: bool) -> void:
 	var box := body.mesh.get_aabb()
 	var y := box.position.y + box.size.y * 0.30
 	var half_x := minf(0.58, box.size.x * 0.27)
 	var nose := box.position.z + box.size.z - 0.72
 	var tail := box.position.z + 0.62
-	_lamp(parent, "HeadL", _shell_point(body, Vector3(-half_x, y, nose)), Color(1.0, 0.94, 0.75), Color(1.0, 0.9, 0.6), 1.6)
-	_lamp(parent, "HeadR", _shell_point(body, Vector3(half_x, y, nose)), Color(1.0, 0.94, 0.75), Color(1.0, 0.9, 0.6), 1.6)
-	_lamp(parent, "TailL", _shell_point(body, Vector3(-half_x, y, tail)), Color(0.85, 0.05, 0.04), Color(1.0, 0.08, 0.05), 0.7)
-	_lamp(parent, "TailR", _shell_point(body, Vector3(half_x, y, tail)), Color(0.85, 0.05, 0.04), Color(1.0, 0.08, 0.05), 0.7)
+	_lamp(parent, "HeadL", _shell_point(body, Vector3(-half_x, y, nose)), Color(1.0, 0.94, 0.75), Color(1.0, 0.9, 0.6), 1.6, with_spots)
+	_lamp(parent, "HeadR", _shell_point(body, Vector3(half_x, y, nose)), Color(1.0, 0.94, 0.75), Color(1.0, 0.9, 0.6), 1.6, with_spots)
+	_lamp(parent, "TailL", _shell_point(body, Vector3(-half_x, y, tail)), Color(0.85, 0.05, 0.04), Color(1.0, 0.08, 0.05), 0.7, false)
+	_lamp(parent, "TailR", _shell_point(body, Vector3(half_x, y, tail)), Color(0.85, 0.05, 0.04), Color(1.0, 0.08, 0.05), 0.7, false)
 
 
-static func _lamp(parent: Node3D, node_name: String, at: Vector3, albedo: Color, emission: Color, energy: float) -> void:
+static func _lamp(parent: Node3D, node_name: String, at: Vector3, albedo: Color, emission: Color, energy: float, with_spot: bool) -> void:
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.name = node_name
 	var mesh := BoxMesh.new()
@@ -191,6 +210,20 @@ static func _lamp(parent: Node3D, node_name: String, at: Vector3, albedo: Color,
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh_instance.material_override = material
 	parent.add_child(mesh_instance)
+	if not with_spot:
+		return
+	var spot := SpotLight3D.new()
+	spot.name = node_name + "Spot"
+	spot.position = at
+	spot.rotation.y = PI
+	spot.spot_range = 34.0
+	spot.spot_angle = 22.0
+	spot.spot_attenuation = 0.7
+	spot.light_energy = 7.5
+	spot.light_color = Color(1.0, 0.93, 0.78)
+	spot.shadow_enabled = false
+	spot.visible = false
+	parent.add_child(spot)
 
 
 static func _boost_fx(parent: Node3D, body: MeshInstance3D) -> void:
@@ -245,3 +278,34 @@ static func _impact(parent: Node3D) -> void:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh_instance.material_override = material
 	parent.add_child(mesh_instance)
+	_burst(parent, "Sparks", Color(1.0, 0.74, 0.28, 1.0), 26, 0.04, Vector3(0.0, -4.0, 0.0), 12.0, 0.32, 0.95)
+	_burst(parent, "Smoke", Color(0.62, 0.62, 0.64, 0.4), 16, 0.28, Vector3(0.0, 2.2, 0.0), 2.8, 0.85, 0.4)
+
+
+static func _burst(parent: Node3D, node_name: String, color: Color, amount: int, radius: float, gravity: Vector3, speed: float, life: float, explosiveness: float) -> void:
+	var particles := CPUParticles3D.new()
+	particles.name = node_name
+	particles.emitting = false
+	particles.one_shot = true
+	particles.amount = amount
+	particles.lifetime = life
+	particles.explosiveness = explosiveness
+	particles.randomness = 0.4
+	particles.direction = Vector3(0.0, 0.35, -0.15)
+	particles.spread = 55.0
+	particles.gravity = gravity
+	particles.initial_velocity_min = speed * 0.45
+	particles.initial_velocity_max = speed
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.0
+	particles.mesh = mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.emission_enabled = true
+	material.emission = Color(color.r, color.g, color.b)
+	material.emission_energy_multiplier = 2.2 if radius < 0.1 else 0.2
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	particles.material_override = material
+	parent.add_child(particles)

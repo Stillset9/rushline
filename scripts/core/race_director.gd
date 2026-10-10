@@ -4,12 +4,13 @@ extends Node3D
 signal speed_changed(speed_mps: float)
 signal distance_changed(distance_m: float)
 signal score_changed(score: int, multiplier: int)
-signal race_finished(score: int)
+signal race_finished(score: int, reason: String)
 
 const INITIAL_MAX_SPEED_MPS := 30.0
 const SPEED_CAP_MPS := 70.0
 const MAX_SPEED_RAMP := 0.15
-const HITS_TO_END := 3
+const MAX_FRAME_S := 0.05
+const WALL_COOLDOWN := 0.85
 const RACE_SCENE := "res://scenes/race/race.tscn"
 const TITLE_SCENE := "res://scenes/menu/title.tscn"
 
@@ -17,22 +18,29 @@ var max_speed_mps: float = INITIAL_MAX_SPEED_MPS
 var initial_max_mps: float = INITIAL_MAX_SPEED_MPS
 var speed_cap_mps: float = SPEED_CAP_MPS
 var distance_m: float = 0.0
+var stage_index: int = 0
+var stage_distance: float = 0.0
 var elapsed_s: float = 0.0
 var crashes: int = 0
 var finished: bool = false
+var finish_reason: String = ""
 var paused: bool = false
 var pause_row: int = 0
 var returned_home: bool = false
 var hint_s: float = 0.0
+var wall_cool: float = 0.0
 var restart_scene: bool = true
 var restarted: bool = false
 var score_keeper := ScoreKeeper.new()
 var progress := Progress.new()
+var fuel := FuelTank.new()
 
 var _shown_kmh: int = -1
 var _shown_distance_m: int = -1
 var _shown_score: int = -1
 var _shown_multiplier: int = 0
+var _prev_player := Vector3.ZERO
+var _has_prev := false
 
 @onready var player: PlayerController = $PlayerVehicle
 @onready var road: RoadStreamer = $RoadStreamer
@@ -49,6 +57,8 @@ var _shown_multiplier: int = 0
 
 var _skids: SkidMarks
 var _sky: SkyDressing
+var _depot: FuelDepot
+var _hazards: HazardField
 
 static func planned_max_speed(time_s: float) -> float:
 	return minf(SPEED_CAP_MPS, INITIAL_MAX_SPEED_MPS + MAX_SPEED_RAMP * time_s)
@@ -82,7 +92,13 @@ func _ready() -> void:
 	_sky = SkyDressing.new()
 	_sky.name = "SkyDressing"
 	add_child(_sky)
-	_apply_world(progress)
+	_depot = FuelDepot.new()
+	_depot.name = "FuelDepot"
+	add_child(_depot)
+	_hazards = HazardField.new()
+	_hazards.name = "HazardField"
+	add_child(_hazards)
+	_apply_world()
 	race_camera.snap_to(player.global_position)
 	speed_changed.connect(hud.show_speed)
 	speed_changed.connect(race_camera.apply_speed)
@@ -93,14 +109,13 @@ func _ready() -> void:
 	_emit_speed_if_changed(player.speed_mps)
 	_emit_distance_if_changed()
 	_emit_score_if_changed()
-	hud.show_track(distance_m, player.track_x())
-	hud.show_nitro(player.nitro_tank)
+	_refresh_hud()
 	_skids = SkidMarks.new()
 	_skids.name = "SkidMarks"
 	add_child(_skids)
 	if progress.races == 0:
 		hint_s = 8.0
-		hud.show_hint("A y D doblan · S frena · Shift nitro")
+		hud.show_hint("A y D doblan · S frena · Shift nitro · Q marcha")
 
 
 func _process(delta: float) -> void:
@@ -111,20 +126,40 @@ func _process(delta: float) -> void:
 		set_paused(not paused)
 		return
 	if paused:
-		if Input.is_action_just_pressed("ui_up"):
-			pause_row = 0
-			hud.show_pause(true, pause_row)
-		elif Input.is_action_just_pressed("ui_down"):
-			pause_row = 1
-			hud.show_pause(true, pause_row)
-		elif Input.is_action_just_pressed("ui_accept"):
-			confirm_pause()
+		_pause_keys()
 		return
 	if hint_s > 0.0:
 		hint_s = maxf(0.0, hint_s - delta)
 		if hint_s == 0.0:
 			hud.show_hint("")
-	simulate(delta)
+	var step := minf(maxf(delta, 0.0), MAX_FRAME_S)
+	if step > 0.0:
+		simulate(step)
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if finished:
+			request_restart()
+			get_viewport().set_input_as_handled()
+			return
+		if paused:
+			var height := get_viewport().get_visible_rect().size.y
+			pause_row = 0 if event.position.y < height * 0.52 else 1
+			hud.show_pause(true, pause_row)
+			confirm_pause()
+			get_viewport().set_input_as_handled()
+
+
+func _pause_keys() -> void:
+	if Input.is_action_just_pressed("ui_up"):
+		pause_row = 0
+		hud.show_pause(true, pause_row)
+	elif Input.is_action_just_pressed("ui_down"):
+		pause_row = 1
+		hud.show_pause(true, pause_row)
+	elif Input.is_action_just_pressed("ui_accept"):
+		confirm_pause()
 
 
 func set_paused(next: bool) -> void:
@@ -148,17 +183,24 @@ func return_to_title() -> void:
 
 
 func close_if_done() -> void:
-	if not finished and distance_m >= Course.STAGE_M:
-		_end_race()
+	if finished:
+		return
+	var length := float(StageRun.stage(stage_index)["length"])
+	if stage_index >= StageRun.count() - 1 and stage_distance >= length:
+		_end_race("meta")
+	elif fuel.empty():
+		_end_race("sin_combustible")
 
 
-func _end_race() -> void:
+func _end_race(reason: String) -> void:
 	if finished:
 		return
 	finished = true
+	finish_reason = reason
 	var shown := displayed_score(score_keeper.score)
-	var record := progress.note_finish(shown)
-	race_finished.emit(shown)
+	var cleared := stage_index + 1 if reason == "meta" else stage_index
+	var record := progress.note_finish(shown, cleared)
+	race_finished.emit(shown, reason)
 	hud.show_hint("")
 	hud.show_standing(progress.best_score, progress.money, record)
 
@@ -175,41 +217,93 @@ func simulate(delta: float) -> void:
 	if finished:
 		return
 	begin_frame(delta)
+	var plan := StageRun.stage(stage_index)
+	var half := StageRun.playable_half(player.track_z(), float(plan["pressure"]))
+	player.road_limit = half
 	player.max_speed_mps = max_speed_mps
+	road.pressure = float(plan["pressure"])
+	traffic.spawn_every = float(plan["spawn"])
+	traffic.road_half = half
+	var prev := Vector3(player.track_x(), 0.0, player.track_z())
 	player.tick(delta)
-	traffic.tick(delta, player.track_z())
+	var now := Vector3(player.track_x(), 0.0, player.track_z())
+	if not _has_prev:
+		prev = now
+		_has_prev = true
+	traffic.tick(delta, player.track_z(), player.track_x(), player.speed_mps)
 	oil.tick(delta, player.track_z())
+	_depot.tick(delta, player.track_z(), stage_distance)
+	_hazards.tick(delta, player.track_z(), stage_distance)
 	if oil.touching(Vector3(player.track_x(), 0.0, player.track_z())):
 		player.slip_s = OilManager.SLIP_S
 	var travel_speed := player.speed_mps
-	var hits := Contact.collect_new_hits(Vector3(player.track_x(), 0.0, player.track_z()), traffic.vehicles())
+	var hits := Contact.collect_new_hits(now, traffic.vehicles(), prev, true)
+	hits += _hazards.collect(now, prev)
 	var multiplier_before := score_keeper.multiplier
-	if hits > 0:
-		player.speed_mps = Contact.speed_after_hits(travel_speed, hits)
-		score_keeper.register_hit()
-		score_keeper.add_hit_distance(travel_speed * delta)
+	fuel.drain(travel_speed * delta, player.boosting)
+	wall_cool = maxf(0.0, wall_cool - delta)
+	var scraped := false
+	if player.scraped and wall_cool <= 0.0:
+		wall_cool = WALL_COOLDOWN
+		scraped = true
+		player.speed_mps = maxf(PlayerController.MIN_SPEED_MPS, player.speed_mps - 6.0)
+		fuel.spend(FuelTank.WALL_COST)
 		race_audio.play_hit()
 		player.show_impact()
 		race_camera.kick()
+	if hits > 0 or scraped:
+		if hits > 0:
+			player.speed_mps = Contact.speed_after_hits(travel_speed, hits)
+			fuel.spend(FuelTank.CRASH_COST * float(hits))
+			race_audio.play_hit()
+			player.show_impact()
+			race_camera.kick()
+		score_keeper.register_hit()
+		score_keeper.add_hit_distance(travel_speed * delta)
 	else:
 		score_keeper.add_clean_distance(travel_speed * delta)
 		if score_keeper.multiplier > multiplier_before:
 			race_audio.play_rise()
-	# La distancia usa la velocidad de este frame. La señal de velocidad usa
-	# la velocidad ya penalizada, que es la que vale a partir de ahora.
+	var picked := _depot.collect(now, prev)
+	if picked > 0:
+		fuel.add(FuelTank.PICKUP * float(picked))
+		score_keeper.add_bonus(FuelTank.BONUS * float(picked))
+		race_audio.play_rise()
 	_add_distance(travel_speed, delta)
+	stage_distance += travel_speed * delta
 	_emit_speed_if_changed(player.speed_mps)
 	_emit_score_if_changed()
-	hud.show_nitro(player.nitro_tank)
-	hud.show_track(distance_m, player.track_x())
 	crashes += hits
-	if crashes >= HITS_TO_END or distance_m >= Course.STAGE_M:
-		_end_race()
+	if stage_distance >= float(plan["length"]):
+		_checkpoint(float(plan["length"]))
+	if not finished and fuel.empty():
+		_end_race("sin_combustible")
+	if finished:
+		return
 	road.tick(player.track_z())
 	street.follow(road.origins())
 	_skids.follow_drift(player.drifting, player.track_z(), player.track_x(), delta)
+	race_camera.boosting = player.boosting
 	race_camera.follow(delta, player.track_z(), player.track_x())
 	race_camera.apply_drive(player.speed_mps, player.boosting)
+	_refresh_hud()
+
+
+func _checkpoint(length: float) -> void:
+	var overflow := stage_distance - length
+	if stage_index >= StageRun.count() - 1:
+		score_keeper.add_bonus(1000.0)
+		_emit_score_if_changed()
+		_end_race("meta")
+		return
+	stage_index += 1
+	stage_distance = maxf(0.0, overflow)
+	fuel.add(FuelTank.CHECKPOINT)
+	_depot.reset_run()
+	_apply_world()
+	var place: Dictionary = Course.theme(int(StageRun.stage(stage_index)["theme"]))
+	hint_s = 2.4
+	hud.show_hint("Etapa %d · %s" % [stage_index + 1, str(place["name"])])
 
 
 func _commit_motion(speed_mps: float, delta: float) -> void:
@@ -247,6 +341,15 @@ func _emit_score_if_changed() -> void:
 	score_changed.emit(shown, score_keeper.multiplier)
 
 
+func _refresh_hud() -> void:
+	var plan := StageRun.stage(stage_index)
+	hud.show_nitro(player.nitro_tank)
+	hud.show_fuel(fuel.fraction())
+	hud.show_gear(player.gear_high)
+	hud.show_pace(player.speed_mps, player.boosting)
+	hud.show_track(stage_distance, player.track_x(), float(plan["length"]))
+
+
 func _aim_celestial(pitch: float) -> void:
 	var toward_sky := Vector3(0.0, sin(pitch), cos(pitch)).normalized()
 	sun.basis = Basis.looking_at(-toward_sky, Vector3.UP)
@@ -261,15 +364,21 @@ func _apply_tune(state: Progress) -> void:
 	player.nitro_drain = PlayerController.NITRO_DRAIN * pow(0.82, float(state.nitro))
 
 
-func _apply_world(state: Progress) -> void:
-	var place := Course.theme(state.races)
-	var state_weather := Course.weather(state.races)
+func _apply_world() -> void:
+	var plan := StageRun.stage(stage_index)
+	var place := Course.theme(int(plan["theme"]))
+	var state_weather := Course.weather(int(plan["weather"]))
+	var weather_id := str(state_weather["id"])
+	road.pressure = float(plan["pressure"])
+	road.wetness = GraphicsProfile.wet_strength(weather_id)
 	road.apply_palette(place["asphalt"], place["paint"])
 	street.apply_place(str(place["id"]))
-	rain.set_active(str(state_weather["id"]) == "lluvia")
+	rain.set_density(GraphicsProfile.rain_amount())
+	rain.set_active(weather_id == "lluvia")
 	player.weather_grip = float(state_weather["grip"])
+	traffic.spawn_every = float(plan["spawn"])
 	var night := bool(place.get("night", false))
-	var sky := Course.sky_color(state.races, state.races)
+	var sky := Course.sky_color(int(plan["theme"]), int(plan["weather"]))
 	if night:
 		sky = (place["sky"] as Color).lerp(sky, 0.2)
 	if _sky != null:
@@ -284,16 +393,18 @@ func _apply_world(state: Progress) -> void:
 		sun.light_energy = 2.2
 		fill.light_energy = 0.4
 		_aim_celestial(0.2)
+	GraphicsProfile.tune_sun(sun)
 	var environment := world.environment.duplicate()
 	environment.background_color = sky
-	environment.ambient_light_energy = 0.2 if night else 0.48
-	if OS.has_feature("web"):
+	environment.ambient_light_energy = 0.22 if night else 0.5
+	GraphicsProfile.decorate(environment, night, weather_id, sky)
+	if not GraphicsProfile.fancy():
 		environment.glow_enabled = false
 		environment.ssao_enabled = false
-	var weather_fog := float(state_weather["fog"])
-	environment.fog_enabled = true
-	environment.fog_density = maxf(weather_fog, 0.0009)
-	environment.fog_aerial_perspective = 0.18
-	environment.fog_light_color = sky
+		environment.ssr_enabled = false
+		environment.sdfgi_enabled = false
+		environment.volumetric_fog_enabled = false
 	world.environment = environment
-	hud.show_course("%s · %s" % [place["name"], state_weather["name"]])
+	GraphicsProfile.apply_viewport(get_viewport())
+	VehicleVisual.set_headlights(player, night, GraphicsProfile.headlight_spots(night))
+	hud.show_course("%s · %s · Etapa %d/%d" % [place["name"], state_weather["name"], stage_index + 1, StageRun.count()])

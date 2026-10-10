@@ -3,10 +3,11 @@ extends RefCounted
 
 const PATH := "user://progress.cfg"
 const MAX_LEVEL := 3
+const PAYOUT_DIVISOR := 8
 const COSTS := {
-	"motor": [400, 900, 1600],
-	"tope": [500, 1100, 2000],
-	"nitro": [450, 1000, 1800],
+	"motor": [1800, 4600, 9800],
+	"tope": [2200, 5400, 12000],
+	"nitro": [2000, 5000, 11000],
 }
 
 static var storage_path := PATH
@@ -18,6 +19,7 @@ var races: int = 0
 var motor: int = 0
 var tope: int = 0
 var nitro: int = 0
+var best_stage: int = 0
 var banked := false
 
 
@@ -34,6 +36,7 @@ static func load_state() -> Progress:
 	progress.motor = int(file.get_value("save", "motor", 0))
 	progress.tope = int(file.get_value("save", "tope", 0))
 	progress.nitro = int(file.get_value("save", "nitro", 0))
+	progress.best_stage = int(file.get_value("save", "best_stage", 0))
 	return progress
 
 
@@ -47,17 +50,20 @@ func save() -> void:
 	file.set_value("save", "motor", motor)
 	file.set_value("save", "nitro", nitro)
 	file.set_value("save", "tope", tope)
+	file.set_value("save", "best_stage", best_stage)
 	file.save(storage_path)
 
 
-func note_finish(score: int) -> bool:
+func note_finish(score: int, stage_reached: int = 0) -> bool:
 	if banked:
 		return false
 	banked = true
 	var record := score > best_score
-	money += score
+	money += int(score) / PAYOUT_DIVISOR
 	if record:
 		best_score = score
+	if stage_reached > best_stage:
+		best_stage = stage_reached
 	races += 1
 	save()
 	return record

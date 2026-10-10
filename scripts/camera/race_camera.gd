@@ -14,6 +14,8 @@ const FOV_LIMIT := 78.0
 const SHAKE_S := 0.16
 
 var shake_s: float = 0.0
+var boosting: bool = false
+var boost_clock: float = 0.0
 
 
 static func target_position(player_position: Vector3) -> Vector3:
@@ -76,6 +78,10 @@ func tick(delta: float, player_position: Vector3) -> void:
 		var fade := shake_s / SHAKE_S
 		var wobble := sin(shake_s * 95.0) * 0.2 * fade
 		global_position += Vector3(wobble, absf(wobble) * 0.4, 0.0)
+	if boosting and GameSettings.quality != "bajo":
+		boost_clock += delta
+		var amp := 0.075 if GameSettings.quality == "alto" else 0.04
+		global_position += Vector3(sin(boost_clock * 48.0) * amp, absf(sin(boost_clock * 33.0)) * amp * 0.4, 0.0)
 	look_at(look_target(player_position), Vector3.UP)
 
 

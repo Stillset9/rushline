@@ -11,6 +11,10 @@ var visual_model: PackedScene
 var _body: MeshInstance3D
 var road_x: float = 0.0
 var road_z: float = 0.0
+var cruise_mps: float = 0.0
+var road_half: float = 6.0
+var hunt: bool = false
+var hunt_x: float = 0.0
 var _road_live: bool = false
 
 
@@ -64,8 +68,12 @@ func tick(delta: float) -> void:
 		road_x = global_position.x
 		road_z = global_position.z
 		_road_live = true
-	road_z += profile.speed_mps * delta
-	if profile.lane_change_interval <= 0.0:
+	var pace := cruise_mps if cruise_mps > 0.0 else profile.speed_mps
+	road_z += pace * delta
+	if hunt and profile.aggression >= 0.5:
+		var aim := clampf(hunt_x, -road_half + 1.15, road_half - 1.15)
+		road_x = move_toward(road_x, aim, profile.aggression * 8.0 * delta)
+	elif profile.lane_change_interval <= 0.0:
 		road_x = lane_x
 	else:
 		road_x = move_toward(road_x, lane_x, 10.0 * delta)

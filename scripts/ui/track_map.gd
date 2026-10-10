@@ -3,6 +3,7 @@ extends Control
 
 var distance_m: float = 0.0
 var lateral_x: float = 0.0
+var stage_m: float = Course.STAGE_M
 var remain_text: String = ""
 
 
@@ -15,7 +16,7 @@ func _ready() -> void:
 func set_run(next_distance_m: float, next_lateral_x: float) -> void:
 	distance_m = next_distance_m
 	lateral_x = next_lateral_x
-	remain_text = format_remaining(distance_m, Course.STAGE_M)
+	remain_text = format_remaining(distance_m, stage_m)
 	queue_redraw()
 
 
@@ -33,11 +34,11 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0.05, 0.06, 0.08, 0.78))
 	draw_string(font, Vector2(16, 32), "Pista", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.74, 0.96, 1))
 	var area := Rect2(18.0, 52.0, size.x - 36.0, size.y - 128.0)
-	var path := CoursePath.samples(25.0, Course.STAGE_M)
+	var path := CoursePath.samples(25.0, stage_m)
 	var fit := _fit(path, area)
 	var screen := fit.points as PackedVector2Array
 	draw_polyline(screen, Color(0.1, 0.11, 0.12, 1.0), 16.0, true)
-	var run := clampf(distance_m, 0.0, Course.STAGE_M)
+	var run := clampf(distance_m, 0.0, stage_m)
 	var split := int(clampf(run / 25.0, 0.0, float(screen.size() - 1)))
 	if split > 0:
 		draw_polyline(screen.slice(0, split + 1), Color(0.74, 0.96, 1, 0.95), 8.0, true)

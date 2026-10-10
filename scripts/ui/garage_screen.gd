@@ -18,6 +18,11 @@ func _ready() -> void:
 	theme = preload("res://ui/rushline_theme.tres")
 	_rows = [%RowMotor, %RowTope, %RowNitro]
 	progress = Progress.load_state()
+	for index in _rows.size():
+		var row := _rows[index]
+		row.mouse_filter = Control.MOUSE_FILTER_STOP
+		row.gui_input.connect(_on_row_click.bind(index))
+		row.mouse_entered.connect(_on_row_hover.bind(index))
 	refresh()
 
 
@@ -38,6 +43,17 @@ func buy_selected() -> bool:
 	var bought := progress.buy(ROWS[selection])
 	refresh()
 	return bought
+
+
+func _on_row_hover(index: int) -> void:
+	selection = index
+	refresh()
+
+
+func _on_row_click(event: InputEvent, index: int) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		selection = index
+		buy_selected()
 
 
 func close() -> void:

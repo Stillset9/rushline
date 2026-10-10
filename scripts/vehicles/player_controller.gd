@@ -33,6 +33,9 @@ var brake_input: bool = false
 var impact_s: float = 0.0
 var boosting: bool = false
 var drifting: bool = false
+var gear_high: bool = true
+var road_limit: float = X_LIMIT
+var scraped: bool = false
 var road_x: float = 0.0
 var road_z: float = 0.0
 var _road_live: bool = false
@@ -50,10 +53,11 @@ static func step_lateral(lateral: float, steer: float, delta: float, grip: float
 	return move_toward(lateral, target, rate * delta)
 
 
-static func step_x(x: float, lateral: float, delta: float) -> Vector2:
+static func step_x(x: float, lateral: float, delta: float, limit: float = X_LIMIT) -> Vector2:
+	var edge := maxf(1.5, limit)
 	var next_x := x + lateral * delta
-	if next_x < -X_LIMIT or next_x > X_LIMIT:
-		return Vector2(clampf(next_x, -X_LIMIT, X_LIMIT), 0.0)
+	if next_x < -edge or next_x > edge:
+		return Vector2(clampf(next_x, -edge, edge), 0.0)
 	return Vector2(next_x, lateral)
 
 
@@ -78,8 +82,11 @@ func tick(delta: float) -> void:
 	var steering := _steer_value()
 	boosting = _nitro_held() and nitro_tank > 0.0 and not braking
 	drifting = false
-	var cap := max_speed_mps + (nitro_boost_mps if boosting else 0.0)
-	speed_mps = step_longitudinal(speed_mps, cap, braking, delta, accel_mps2)
+	scraped = false
+	var cap_scale := 1.0 if gear_high else 0.72
+	var accel_scale := 1.0 if gear_high else 1.35
+	var cap := max_speed_mps * cap_scale + (nitro_boost_mps if boosting else 0.0)
+	speed_mps = step_longitudinal(speed_mps, cap, braking, delta, accel_mps2 * accel_scale)
 	if boosting:
 		nitro_tank = maxf(0.0, nitro_tank - nitro_drain * delta)
 	else:
@@ -93,7 +100,9 @@ func tick(delta: float) -> void:
 		grip *= DRIFT_GRIP
 		speed_mps = maxf(MIN_SPEED_MPS, speed_mps - DRIFT_BLEED * delta)
 	lateral_speed_mps = step_lateral(lateral_speed_mps, steering, delta, grip)
-	var x_step := step_x(road_x, lateral_speed_mps, delta)
+	var outward := lateral_speed_mps
+	var x_step := step_x(road_x, lateral_speed_mps, delta, road_limit)
+	scraped = absf(x_step.x) >= road_limit - 0.02 and absf(outward) > 3.0
 	lateral_speed_mps = x_step.y
 	road_x = x_step.x
 	road_z += speed_mps * delta
@@ -116,6 +125,19 @@ func show_impact() -> void:
 	var impact := get_node_or_null("Impact")
 	if impact != null:
 		impact.visible = true
+	for effect_name in ["Sparks", "Smoke"]:
+		var burst := get_node_or_null(effect_name) as CPUParticles3D
+		if burst == null:
+			continue
+		burst.restart()
+		burst.emitting = true
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not read_input_devices or not event.is_action_pressed("gear"):
+		return
+	gear_high = not gear_high
+	get_viewport().set_input_as_handled()
 
 
 func _is_braking() -> bool:

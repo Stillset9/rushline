@@ -1,8 +1,8 @@
 class_name ControlCard
 extends Control
 
-const KEYS: PackedStringArray = ["A", "D", "S  espacio", "Shift", "Esc", "Enter"]
-const USES: PackedStringArray = ["izquierda", "derecha", "frena", "nitro", "pausa", "reanuda"]
+const KEYS: PackedStringArray = ["A", "D", "S  espacio", "Shift", "Q", "Esc", "Enter"]
+const USES: PackedStringArray = ["izquierda", "derecha", "frena", "nitro", "marcha", "pausa", "reanuda"]
 
 
 func _ready() -> void:

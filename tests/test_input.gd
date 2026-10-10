@@ -16,6 +16,8 @@ func run(_tree: SceneTree) -> Array:
 		failed.append("ui_cancel")
 	if not InputMap.has_action("nitro") or not _nitro_events_ok():
 		failed.append("nitro")
+	if not InputMap.has_action("gear") or InputMap.action_get_events("gear").is_empty():
+		failed.append("gear")
 	if not InputMap.has_action("ui_up") or not _menu_key("ui_up", KEY_UP):
 		failed.append("ui_up")
 	if not InputMap.has_action("ui_down") or not _menu_key("ui_down", KEY_DOWN):

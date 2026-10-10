@@ -128,5 +128,5 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.75, 0.74, 0.7, 1)
 theme_override_font_sizes/font_size = 20
-text = "Enter compra  ·  Esc vuelve"
+text = "Clic o Enter compra  ·  Esc vuelve"
 horizontal_alignment = 1

@@ -33,3 +33,7 @@ func register_hit() -> void:
 
 func add_hit_distance(meters: float) -> void:
 	score += meters * float(multiplier)
+
+
+func add_bonus(points: float) -> void:
+	score += maxf(0.0, points)

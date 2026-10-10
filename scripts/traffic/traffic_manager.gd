@@ -33,6 +33,8 @@ const PROFILES: Array[AiProfile] = [
 const HEAVY_SCALE := 1.28
 
 var profile: AiProfile
+var spawn_every := SPAWN_INTERVAL
+var road_half := 6.0
 var _pool: Array[TrafficVehicle] = []
 var _materials: Array[StandardMaterial3D] = []
 var _spawn_timer: float = 0.0
@@ -108,25 +110,57 @@ func vehicles() -> Array[TrafficVehicle]:
 	return _pool
 
 
-func tick(delta: float, player_z: float) -> void:
+static func cruise_speed(base: float, player_speed: float, aggression: float, heavy: bool) -> float:
+	if player_speed <= 1.0:
+		return base
+	var follow := 0.4 if heavy else (0.64 + clampf(aggression, 0.0, 1.0) * 0.26)
+	return maxf(base, player_speed * follow)
+
+
+static func lane_toward(lane: int, player_x: float) -> int:
+	var target := 1
+	if player_x < -2.0:
+		target = 0
+	elif player_x > 2.0:
+		target = 2
+	if target == lane:
+		return lane
+	return lane + (1 if target > lane else -1)
+
+
+func tick(delta: float, player_z: float, player_x: float = 0.0, player_speed: float = 0.0) -> void:
 	for vehicle in _pool:
 		if not vehicle.active:
 			continue
+		var heavy := vehicle.profile != null and vehicle.profile.id == "pesado"
+		var aggression := 0.0 if vehicle.profile == null else vehicle.profile.aggression
+		var base := 0.0 if vehicle.profile == null else vehicle.profile.speed_mps
+		vehicle.cruise_mps = cruise_speed(base, player_speed, aggression, heavy)
+		vehicle.road_half = road_half
+		vehicle.hunt = player_speed > 1.0 and aggression >= 0.5
+		vehicle.hunt_x = player_x
 		vehicle.tick(delta)
-		if vehicle.profile != null and vehicle.profile.lane_change_interval > 0.0:
+		if vehicle.profile != null and vehicle.profile.lane_change_interval > 0.0 and not vehicle.hunt:
 			vehicle.lane_timer += delta
 			if vehicle.lane_timer >= vehicle.profile.lane_change_interval:
 				vehicle.lane_timer = 0.0
 				var next := choose_lane_change(vehicle.lane, vehicle.track_z(), _occupants(vehicle))
 				if next != -1:
 					vehicle.lane = next
-					vehicle.lane_x = lane_center(next)
+					vehicle.lane_x = _fit_lane(lane_center(next))
+		elif vehicle.hunt and vehicle.profile != null:
+			vehicle.lane_timer += delta
+			var gap := maxf(0.7, vehicle.profile.lane_change_interval * 0.55)
+			if vehicle.lane_timer >= gap:
+				vehicle.lane_timer = 0.0
+				vehicle.lane = lane_toward(vehicle.lane, player_x)
+				vehicle.lane_x = _fit_lane(lane_center(vehicle.lane))
 		var ahead := vehicle.track_z() - player_z
 		if ahead < -DESPAWN_BEHIND or ahead > DESPAWN_AHEAD:
 			vehicle.deactivate()
 	_spawn_timer += delta
-	if _spawn_timer >= SPAWN_INTERVAL:
-		_spawn_timer -= SPAWN_INTERVAL
+	if _spawn_timer >= spawn_every:
+		_spawn_timer -= spawn_every
 		_try_spawn(player_z)
 
 
@@ -151,7 +185,7 @@ func _try_spawn(player_z: float) -> void:
 	vehicle.profile = chosen
 	vehicle.activate(
 		lane,
-		Vector3(lane_center(lane), 0.0, spawn_z),
+		Vector3(_fit_lane(lane_center(lane)), 0.0, spawn_z),
 		_materials[style % COLORS.size()],
 		body_scale
 	)
@@ -162,6 +196,11 @@ func _inactive_vehicle() -> TrafficVehicle:
 		if not vehicle.active:
 			return vehicle
 	return null
+
+
+func _fit_lane(center: float) -> float:
+	var margin := 1.15
+	return clampf(center, -road_half + margin, road_half - margin)
 
 
 func _occupants(except: TrafficVehicle) -> Array:

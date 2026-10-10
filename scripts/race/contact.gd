@@ -23,15 +23,32 @@ static func speed_after_hits(speed: float, hits: int) -> float:
 	return result
 
 
-static func collect_new_hits(player_position: Vector3, vehicles: Array[TrafficVehicle]) -> int:
+static func segment_overlaps(start: Vector2, end: Vector2, a_half: Vector2, b_center: Vector2, b_half: Vector2) -> bool:
+	if overlaps(start, a_half, b_center, b_half) or overlaps(end, a_half, b_center, b_half):
+		return true
+	var span := start.distance_to(end)
+	if span <= 0.75:
+		return false
+	var steps := int(ceil(span / 1.0))
+	for step in range(1, steps):
+		var point := start.lerp(end, float(step) / float(steps))
+		if overlaps(point, a_half, b_center, b_half):
+			return true
+	return false
+
+
+static func collect_new_hits(player_position: Vector3, vehicles: Array[TrafficVehicle], player_from: Vector3 = Vector3.ZERO, use_path: bool = false) -> int:
 	var hits := 0
-	var player_center := Vector2(player_position.x, player_position.z)
+	var player_end := Vector2(player_position.x, player_position.z)
+	var player_start := player_end
+	if use_path:
+		player_start = Vector2(player_from.x, player_from.z)
 	var player_half := half_extents(1.0)
 	for vehicle in vehicles:
 		if not vehicle.active:
 			continue
 		var center := vehicle.road_center()
-		var overlapping := overlaps(player_center, player_half, center, half_extents(vehicle.scale.x))
+		var overlapping := segment_overlaps(player_start, player_end, player_half, center, half_extents(vehicle.scale.x))
 		if overlapping and not vehicle.in_contact:
 			hits += 1
 		vehicle.in_contact = overlapping

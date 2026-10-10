@@ -37,7 +37,14 @@ func _ready() -> void:
 	_page_label.add_theme_font_size_override("font_size", 28)
 	_page_label.add_theme_color_override("font_color", Color(0.95, 0.94, 0.9))
 	_page_label.visible = false
+	_page_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_page_label.gui_input.connect(_on_page_click)
 	add_child(_page_label)
+	for index in _options.size():
+		var option := _options[index]
+		option.mouse_filter = Control.MOUSE_FILTER_STOP
+		option.gui_input.connect(_on_menu_click.bind(index))
+		option.mouse_entered.connect(_on_menu_hover.bind(index))
 	_paint()
 
 
@@ -114,9 +121,9 @@ func _process_page() -> void:
 	if page != "opciones":
 		return
 	if Input.is_action_just_pressed("ui_up"):
-		page_row = posmod(page_row - 1, 3)
+		page_row = posmod(page_row - 1, 4)
 	elif Input.is_action_just_pressed("ui_down"):
-		page_row = posmod(page_row + 1, 3)
+		page_row = posmod(page_row + 1, 4)
 	elif Input.is_action_just_pressed("steer_left"):
 		_adjust_option(-0.1)
 	elif Input.is_action_just_pressed("steer_right") or Input.is_action_just_pressed("ui_accept"):
@@ -133,6 +140,8 @@ func _adjust_option(step: float) -> void:
 		2:
 			if step > 0.0:
 				GameSettings.muted = not GameSettings.muted
+		3:
+			GameSettings.cycle_quality(1 if step > 0.0 else -1)
 	GameSettings.save()
 
 
@@ -140,18 +149,40 @@ func _refresh_page() -> void:
 	var state := Progress.load_state()
 	match page:
 		"records":
-			_page_label.text = "Récords\n\nMejor puntaje  %d\nCarreras  %d\nDinero  %d cr\n\nEsc vuelve" % [state.best_score, state.races, state.money]
+			_page_label.text = "Récords\n\nMejor puntaje  %d\nCarreras  %d\nEtapa  %d/%d\nDinero  %d cr\n\nEsc vuelve" % [state.best_score, state.races, state.best_stage, StageRun.count(), state.money]
 		"creditos":
-			_page_label.text = "RUSHLINE\nHJgames\n\nAutos de Grab3D, licencia CC0\nCiudad y naturaleza de Kenney, CC0\nMúsica: Pure Raceway, MintoDog, CC0\nTipografía: Orbitron, OFL\nEfectos y sonido de intro originales\n\nEsc vuelve"
+			_page_label.text = "RUSHLINE\nHJgames\n\nLlega a la meta de cada etapa sin quedarte sin combustible.\nLos bidones amarillos recargan y suman puntos.\n\nAutos de Grab3D, licencia CC0\nCiudad y naturaleza de Kenney, CC0\nMúsica: Pure Raceway, MintoDog, CC0\nTipografía: Orbitron, OFL\nBidones, vallas, efectos y sonido de intro originales\n\nEsc vuelve"
 		"opciones":
 			var mute := "Sí" if GameSettings.muted else "No"
 			var rows := [
 				"Música  %d%%" % GameSettings.music_percent(),
 				"Efectos  %d%%" % GameSettings.sfx_percent(),
 				"Silencio  %s" % mute,
+				"Gráficos  %s" % GameSettings.quality_name(),
 			]
 			rows[page_row] = "> " + rows[page_row]
-			_page_label.text = "Opciones\n\n%s\n\nA y D ajustan · Esc vuelve" % "\n".join(rows)
+			_page_label.text = "Opciones\n\n%s\n\nA y D ajustan · clic también · Esc vuelve" % "\n".join(rows)
+
+
+func _on_menu_hover(index: int) -> void:
+	selection = index
+	_paint()
+
+
+func _on_menu_click(event: InputEvent, index: int) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		selection = index
+		_paint()
+		_confirm()
+
+
+func _on_page_click(event: InputEvent) -> void:
+	if page != "opciones":
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var mid := _page_label.size.x * 0.5
+		_adjust_option(-0.1 if event.position.x < mid else 0.1)
+		_refresh_page()
 
 
 func _paint() -> void:

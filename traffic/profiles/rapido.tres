@@ -6,5 +6,5 @@
 script = ExtResource("1_profile")
 id = "rapido"
 speed_mps = 34.0
-lane_change_interval = 0.0
-aggression = 0.0
+lane_change_interval = 2.4
+aggression = 0.15

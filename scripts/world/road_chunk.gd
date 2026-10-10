@@ -42,6 +42,35 @@ func _add_box(at: Vector3, size: Vector3, color: Color) -> void:
 	add_child(mesh_instance)
 
 
+func set_playable(half: float) -> void:
+	var edge := maxf(3.2, half)
+	var asphalt_width := edge * 2.0 + 2.0
+	for child in get_children():
+		var mesh_instance := child as MeshInstance3D
+		if mesh_instance == null:
+			continue
+		var box := mesh_instance.mesh as BoxMesh
+		if box == null:
+			continue
+		if box.size.x > 2.0:
+			box.size = Vector3(asphalt_width, box.size.y, box.size.z)
+		elif box.size.z >= LENGTH - 0.1 and absf(mesh_instance.position.x) > 1.0:
+			mesh_instance.position.x = signf(mesh_instance.position.x) * edge
+
+
+func apply_wet(amount: float) -> void:
+	for child in get_children():
+		var mesh_instance := child as MeshInstance3D
+		if mesh_instance == null:
+			continue
+		var box := mesh_instance.mesh as BoxMesh
+		var material := mesh_instance.material_override as StandardMaterial3D
+		if box == null or material == null or box.size.x < 2.0:
+			continue
+		material.roughness = lerpf(0.9, 0.12, amount)
+		material.metallic = lerpf(0.02, 0.48, amount)
+
+
 func apply_palette(asphalt: Color, paint: Color) -> void:
 	for child in get_children():
 		var mesh_instance := child as MeshInstance3D

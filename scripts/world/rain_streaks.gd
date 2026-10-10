@@ -29,3 +29,7 @@ func _ready() -> void:
 func set_active(enabled: bool) -> void:
 	visible = enabled
 	emitting = enabled
+
+
+func set_density(next_amount: int) -> void:
+	amount = maxi(12, next_amount)
