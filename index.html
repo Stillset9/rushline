@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>RUSHLINE</title>
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: #05060a;
+}
+
+body {
+	color: white;
+	overflow: hidden;
+	touch-action: none;
+	font-family: "Segoe UI", "Noto Sans", Arial, sans-serif;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	background:
+		radial-gradient(ellipse at 50% 42%, rgba(70, 110, 180, 0.28), transparent 46%),
+		radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.65), #05060a 55%);
+	visibility: hidden;
+}
+
+#status-splash {
+	width: 72px;
+	height: 72px;
+	object-fit: contain;
+	margin-bottom: 18px;
+	filter: drop-shadow(0 0 18px rgba(120, 180, 255, 0.45));
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+.brand-kicker {
+	letter-spacing: 0.62em;
+	font-size: 13px;
+	color: rgba(210, 222, 240, 0.72);
+	margin: 0 0 10px;
+}
+
+.brand-title {
+	margin: 0;
+	font-size: 64px;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	color: #f4f7fb;
+	text-shadow: 0 0 24px rgba(150, 190, 255, 0.45);
+}
+
+#load-pct {
+	margin-top: 28px;
+	font-size: 13px;
+	letter-spacing: 0.28em;
+	color: rgba(220, 230, 245, 0.8);
+}
+
+#status-progress {
+	width: min(420px, 68vw);
+	height: 3px;
+	margin-top: 14px;
+	appearance: none;
+	border: 0;
+	background: rgba(255, 255, 255, 0.12);
+	border-radius: 99px;
+	overflow: hidden;
+}
+
+#status-progress::-webkit-progress-bar {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+#status-progress::-webkit-progress-value {
+	background: linear-gradient(90deg, #7eb6ff, #ffffff);
+}
+
+#status-progress::-moz-progress-bar {
+	background: linear-gradient(90deg, #7eb6ff, #ffffff);
+}
+
+#status-notice {
+	display: none;
+	max-width: 36rem;
+	margin: 1.5rem 2rem 0;
+	padding: 1rem;
+	background: rgba(20, 16, 24, 0.92);
+	border: 1px solid rgba(180, 80, 90, 0.8);
+	border-radius: 0.5rem;
+	text-align: center;
+	z-index: 1;
+}
+		</style>
+		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+		<noscript>Este juego necesita JavaScript.</noscript>
+		<div id="status">
+			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
+			<p class="brand-kicker">HJGAMES PRESENTA</p>
+			<h1 class="brand-title">RUSHLINE</h1>
+			<div id="load-pct">0%</div>
+			<progress id="status-progress" max="100" value="0"></progress>
+			<div id="status-notice"></div>
+		</div>
+		<script>
+/* Music plays on HTML audio elements so Vorbis decode stays off the Godot
+   main thread. Two elements cover the crossfade. */
+(function () {
+	if (window.__rushlinePlaylist) {
+		return;
+	}
+	function make() {
+		var el = new Audio();
+		el.preload = 'auto';
+		el.crossOrigin = 'anonymous';
+		return el;
+	}
+	var primary = make();
+	var secondary = make();
+	var blocked = false;
+	function kick(el) {
+		if (!el.src) {
+			return;
+		}
+		var run = el.play();
+		if (run && run.then) {
+			run.then(function () { blocked = false; }).catch(function () { blocked = true; });
+		}
+	}
+	function unlock() {
+		if (!blocked) {
+			return;
+		}
+		kick(primary);
+		if (secondary.currentTime > 0 && !secondary.ended) {
+			kick(secondary);
+		}
+	}
+	window.addEventListener('pointerdown', unlock, true);
+	window.addEventListener('keydown', unlock, true);
+	window.addEventListener('touchstart', unlock, true);
+	window.__rushlinePlaylist = {
+		play: function (url, at, volume) {
+			secondary.pause();
+			if (primary.src !== url) {
+				primary.src = url;
+			}
+			primary.volume = volume;
+			try { primary.currentTime = at || 0; } catch (err) { /* metadata not in yet */ }
+			kick(primary);
+		},
+		prefetch: function (url) {
+			if (!url || secondary.src === url || primary.src === url) {
+				return;
+			}
+			secondary.src = url;
+			secondary.load();
+		},
+		beginFade: function (url) {
+			if (!url) {
+				return;
+			}
+			if (secondary.src !== url) {
+				secondary.src = url;
+			}
+			secondary.volume = 0;
+			try { secondary.currentTime = 0; } catch (err) { /* metadata not in yet */ }
+			kick(secondary);
+		},
+		volumes: function (current, next) {
+			primary.volume = current;
+			secondary.volume = next;
+		},
+		pause: function (flag) {
+			if (flag) {
+				primary.pause();
+				secondary.pause();
+				return;
+			}
+			kick(primary);
+			if (secondary.currentTime > 0 && !secondary.ended) {
+				kick(secondary);
+			}
+		},
+		seek: function (at) {
+			try { primary.currentTime = at; } catch (err) { /* not seekable yet */ }
+		},
+		stopNext: function () {
+			secondary.pause();
+		},
+		commit: function () {
+			primary.pause();
+			var swap = primary;
+			primary = secondary;
+			secondary = swap;
+			secondary.pause();
+		},
+		sample: function () {
+			var duration = primary.duration;
+			var length = (duration && isFinite(duration)) ? duration : 0;
+			return (primary.currentTime || 0) + ',' + length + ',' + (primary.ended ? 1 : 0);
+		},
+		playing: function () {
+			return !!primary.src && !primary.paused && !primary.ended;
+		}
+	};
+})();
+		</script>
+		<script>
+/* Keep a handle on the Godot AudioContext and a silent tap of whatever
+   reaches the speakers. add_bus() on the HTML5 sample graph can disconnect
+   Master; the tap is how the web probe hears that. */
+(function () {
+	if (window.__rushlineAudioHook) {
+		return;
+	}
+	window.__rushlineAudioHook = true;
+	var Orig = window.AudioContext || window.webkitAudioContext;
+	if (!Orig) {
+		return;
+	}
+	var origConnect = AudioNode.prototype.connect;
+	function Patched() {
+		var ctx = new Orig(...arguments);
+		window.__rushlineAudio = ctx;
+		var tap = ctx.createGain();
+		tap.gain.value = 1;
+		var analyser = ctx.createAnalyser();
+		analyser.fftSize = 2048;
+		origConnect.call(tap, analyser);
+		window.__rushlineTap = tap;
+		window.__rushlineAnalyser = analyser;
+		var resume = function () {
+			if (ctx.state !== 'running') {
+				ctx.resume();
+			}
+		};
+		window.addEventListener('pointerdown', resume, true);
+		window.addEventListener('keydown', resume, true);
+		window.addEventListener('touchstart', resume, true);
+		resume();
+		return ctx;
+	}
+	Patched.prototype = Orig.prototype;
+	window.AudioContext = Patched;
+	if (window.webkitAudioContext) {
+		window.webkitAudioContext = Patched;
+	}
+	AudioNode.prototype.connect = function (dest) {
+		var out = origConnect.apply(this, arguments);
+		try {
+			var live = window.__rushlineAudio;
+			if (live && dest === live.destination && this !== window.__rushlineTap) {
+				origConnect.call(this, window.__rushlineTap);
+			}
+		} catch (err) {
+			/* A node can already be wired into the tap. */
+		}
+		return out;
+	};
+	window.__rushlineMeasure = async function (ms) {
+		var analyser = window.__rushlineAnalyser;
+		var bins = new Float32Array(analyser ? analyser.fftSize : 2048);
+		var sum = 0;
+		var n = 0;
+		var peak = 0;
+		var grabbed = [];
+		var t0 = performance.now();
+		while (performance.now() - t0 < ms) {
+			if (analyser) {
+				analyser.getFloatTimeDomainData(bins);
+				for (var i = 0; i < bins.length; i += 8) {
+					var v = bins[i];
+					sum += v * v;
+					n += 1;
+					var a = Math.abs(v);
+					if (a > peak) {
+						peak = a;
+					}
+					if (grabbed.length < 16000) {
+						grabbed.push(Math.round(v * 32767));
+					}
+				}
+			}
+			await new Promise(function (resolve) { setTimeout(resolve, 25); });
+		}
+		return {
+			rms: Math.sqrt(sum / Math.max(n, 1)),
+			peak: peak,
+			samples: grabbed,
+			state: window.__rushlineAudio ? window.__rushlineAudio.state : 'missing',
+		};
+	};
+})();
+		</script>
+		<script src="index.js"></script>
+		<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":13979200,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
+	const loadPct = document.getElementById('load-pct');
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+		displayFailureNotice(missingMsg + missing.join('\n'));
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+					if (loadPct) {
+						loadPct.textContent = Math.round((current / total) * 100) + '%';
+					}
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>
+
