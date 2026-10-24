@@ -5,41 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CalmaWeb — Política de privacidad / Privacy Policy</title>
     <style>
-      body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; line-height: 1.6; color: #142018; background: #f4f7f5; }
+      body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; line-height: 1.6; color: #1a1528; background: #f5f2fb; }
       main { max-width: 760px; margin: 0 auto; padding: 32px 20px 48px; }
       h1 { font-size: 1.8rem; margin-bottom: 0.3rem; line-height: 1.25; }
-      h2 { margin-top: 2.2rem; border-bottom: 2px solid #cfe3d6; padding-bottom: 4px; }
+      h2 { margin-top: 2.2rem; border-bottom: 2px solid #ddd6fe; padding-bottom: 4px; }
       h3 { margin-bottom: 0.2rem; }
-      .meta { color: #5b6b61; }
-      nav a { margin-right: 14px; color: #1f8a53; }
+      .meta { color: #6b6480; }
+      nav a { margin-right: 14px; color: #7c3aed; }
     </style>
   </head>
   <body>
     <main>
       <h1>CalmaWeb</h1>
-      <p class="meta">Última actualización / Last updated: 10 Oct 2026 · v1.3.0</p>
+      <p class="meta">Última actualización / Last updated: 23 Oct 2026 · v1.4.1</p>
       <nav><a href="#es">Español</a><a href="#en">English</a></nav>
 
       <section id="es">
         <h2>Política de privacidad</h2>
         <h3>Propósito único</h3>
-        <p>CalmaWeb bloquea anuncios, rastreadores, ventanas emergentes de publicidad y anuncios en videos para mejorar la navegación. Ese es su único propósito.</p>
+        <p>CalmaWeb bloquea anuncios, rastreadores, ventanas emergentes de publicidad y anuncios en videos para mejorar la navegación. Ese es su único propósito. Usa las listas públicas EasyList y Lista española, convertidas dentro de la extensión.</p>
         <h3>Datos que recopilamos</h3>
-        <p><strong>Ninguno.</strong> La extensión no recopila, vende ni envía información personal ni datos de navegación a ningún servidor. No incluye analíticas, SDK publicitarios, cuentas ni código remoto.</p>
+        <p><strong>Ninguno sobre vos.</strong> La extensión no recopila, vende ni envía información personal ni datos de navegación. No hay cuentas, analíticas ni código remoto. Para mantener las listas al día puede descargar, como mucho una vez por día, los archivos públicos de EasyList y de la lista española. Esa descarga no incluye las páginas que visitás ni un identificador tuyo.</p>
         <h3>Qué se guarda en tu equipo</h3>
         <p>Solo esto, con <code>chrome.storage.local</code>, y nunca sale de tu navegador:</p>
         <ul>
           <li>si la protección está activada o pausada;</li>
           <li>la lista de sitios donde vos pausaste el bloqueo;</li>
-          <li>un contador local de elementos bloqueados.</li>
+          <li>qué listas están activadas y cuándo se actualizaron por última vez;</li>
+          <li>una copia local de reglas cosméticas nuevas traídas con la actualización de listas (si cabe en el almacenamiento).</li>
         </ul>
-        <p>Podés borrar todo desinstalando la extensión.</p>
+        <p>El número del icono y del panel es <strong>por pestaña</strong>: cuenta lo detenido en esa página y se reinicia al navegar. No se guarda un total histórico. Podés borrar todo desinstalando la extensión.</p>
         <h3>Permisos</h3>
         <ul>
-          <li><strong>declarativeNetRequest</strong>: bloquear solicitudes de anuncios y rastreadores con reglas incluidas en la extensión.</li>
-          <li><strong>storage</strong>: guardar la configuración en tu equipo.</li>
-          <li><strong>activeTab</strong>: mostrar cuántas solicitudes se bloquearon en la pestaña actual cuando abrís el panel.</li>
-          <li><strong>Acceso a todos los sitios</strong>: los anuncios y rastreadores aparecen en cualquier sitio, así que las reglas y los scripts de bloqueo deben poder actuar en todos. No se lee ni se envía tu historial.</li>
+          <li><strong>declarativeNetRequest</strong>: bloquear solicitudes de anuncios y rastreadores con las reglas incluidas de EasyList y de la lista española, permitir un sitio que vos pausás, y mostrar en el icono cuántas se detuvieron en la pestaña actual (contador de Chrome por pestaña; no usa el permiso de historial).</li>
+          <li><strong>storage</strong>: guardar en tu equipo el estado, los sitios pausados, las listas activas y la última actualización.</li>
+          <li><strong>activeTab</strong>: al abrir el panel, leer la dirección de la pestaña actual para pausar ese sitio. No lee el resto de las pestañas en segundo plano.</li>
+          <li><strong>alarms</strong>: despertar la extensión cerca de una vez por día para actualizar las listas públicas.</li>
+          <li><strong>Acceso de host, solo para las listas</strong> (<code>https://easylist-downloads.adblockplus.org/*</code> y <code>https://easylist.to/*</code>): únicamente para descargar los archivos públicos de EasyList y de la lista española. No se usa para leer las páginas que visitás.</li>
+          <li><strong>Sin acceso a todos los sitios.</strong> El manifiesto no pide <code>&lt;all_urls&gt;</code> ni <code>declarativeNetRequestFeedback</code>. Los scripts de contenido corren dentro de las páginas http y https para ocultar anuncios y banners, frenar ventanas emergentes de publicidad y actuar sobre anuncios de video. No leen ni envían tu historial.</li>
         </ul>
         <h3>Terceros</h3>
         <p>No compartimos datos con terceros porque no recopilamos datos.</p>
@@ -50,23 +53,26 @@
       <section id="en">
         <h2>Privacy Policy</h2>
         <h3>Single purpose</h3>
-        <p>CalmaWeb blocks ads, trackers, ad popups and video ads to improve browsing. That is its only purpose.</p>
+        <p>CalmaWeb blocks ads, trackers, ad popups and video ads to improve browsing. That is its only purpose. It uses the public EasyList and EasyList Spanish filter lists, converted inside the extension.</p>
         <h3>Data we collect</h3>
-        <p><strong>None.</strong> The extension does not collect, sell or transmit personal information or browsing data to any server. It contains no analytics, advertising SDKs, accounts or remote code.</p>
+        <p><strong>Nothing about you.</strong> The extension does not collect, sell or transmit personal information or browsing data. It has no accounts, analytics or remote code. To keep filter lists current it may download, at most about once a day, the public EasyList and EasyList Spanish files. That download does not include pages you visit or an identifier for you.</p>
         <h3>What is stored on your device</h3>
         <p>Only the following, via <code>chrome.storage.local</code>; it never leaves your browser:</p>
         <ul>
           <li>whether protection is on or paused;</li>
           <li>the list of sites where you paused blocking;</li>
-          <li>a local count of blocked items.</li>
+          <li>which lists are enabled and when they were last updated;</li>
+          <li>a local copy of any new cosmetic rules brought in with a list update (if it fits in storage).</li>
         </ul>
-        <p>Uninstalling the extension deletes all of it.</p>
+        <p>The number on the icon and in the popup is <strong>per tab</strong>: it counts what was stopped on that page and resets when you navigate. No all-time total is stored. Uninstalling the extension deletes all of it.</p>
         <h3>Permissions</h3>
         <ul>
-          <li><strong>declarativeNetRequest</strong>: block ad and tracker requests using rules bundled with the extension.</li>
-          <li><strong>storage</strong>: save your settings on your device.</li>
-          <li><strong>activeTab</strong>: show how many requests were blocked on the current tab when you open the popup.</li>
-          <li><strong>Access to all sites</strong>: ads and trackers appear on any website, so the blocking rules and scripts must run on all of them. Your history is never read or sent anywhere.</li>
+          <li><strong>declarativeNetRequest</strong>: block ad and tracker requests with the bundled EasyList and EasyList Spanish rules, allow a site you pause, and show on the icon how many were stopped on the current tab (Chrome's per-tab action count; no browsing-history permission).</li>
+          <li><strong>storage</strong>: save on your device the on/off state, paused sites, which lists are enabled and the last update time.</li>
+          <li><strong>activeTab</strong>: when you open the popup, read the current tab's address so you can pause that site. It does not read other tabs in the background.</li>
+          <li><strong>alarms</strong>: wake the extension about once a day to refresh the public filter lists.</li>
+          <li><strong>Host access, filter lists only</strong> (<code>https://easylist-downloads.adblockplus.org/*</code> and <code>https://easylist.to/*</code>): used solely to download the public EasyList and EasyList Spanish files. Not used to read pages you visit.</li>
+          <li><strong>No access to all sites.</strong> The manifest does not request <code>&lt;all_urls&gt;</code> or <code>declarativeNetRequestFeedback</code>. Content scripts run inside http and https pages to hide ads and banners, stop ad popups and act on video ads. They do not read or upload your history.</li>
         </ul>
         <h3>Sharing</h3>
         <p>We do not share user data with third parties because we do not collect any.</p>
